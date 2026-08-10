@@ -15,8 +15,10 @@ await fastify.register(cors, {
 });
 
 // Conexión a PostgreSQL
+// Conexión a PostgreSQL con soporte SSL
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
 });
 
 // Ruta principal
