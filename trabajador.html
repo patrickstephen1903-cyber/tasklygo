@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tasklygo - Panel del Trabajador</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 15px; color: #2c3e50; }
+    .header { text-align: center; margin-bottom: 20px; }
+    .header h1 { font-size: 22px; margin: 0; color: #2c3e50; }
+    .header p { font-size: 13px; color: #7f8c8d; margin-top: 5px; }
+
+    .card-pedido { background: white; border-radius: 12px; padding: 18px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-left: 6px solid #f1c40f; }
+    .card-pedido.en-camino { border-left-color: #3498db; }
+
+    .cliente-nombre { font-size: 18px; font-weight: bold; margin-bottom: 5px; color: #2c3e50; }
+    .servicio-tipo { font-size: 14px; color: #34495e; font-weight: 600; margin-bottom: 10px; }
+    .info-row { font-size: 13px; color: #555; margin-bottom: 5px; display: flex; justify-content: space-between; }
+    .precio-tag { font-size: 18px; font-weight: bold; color: #27ae60; text-align: right; margin-top: 10px; }
+
+    /* Botones de Acción */
+    .btn-accion { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer; margin-top: 12px; transition: background 0.2s; }
+    .btn-aceptar { background-color: #3498db; color: white; }
+    .btn-aceptar:hover { background-color: #2980b9; }
+    .btn-completar { background-color: #2ecc71; color: white; }
+    .btn-completar:hover { background-color: #27ae60; }
+
+    .no-pedidos { text-align: center; color: #95a5a6; margin-top: 40px; font-size: 14px; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>👷‍♂️ Tasklygo Pro</h1>
+    <p>Servicios de Limpieza Disponibles en Lima</p>
+  </div>
+
+  <div id="listaTrabajos">
+    <!-- Carga dinámica de trabajos -->
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:3000/pedidos';
+
+    async function cargarTrabajos() {
+      try {
+        const res = await fetch(API_URL);
+        const data = await res.json();
+
+        const contenedor = document.getElementById('listaTrabajos');
+        contenedor.innerHTML = '';
+
+        // Filtramos para mostrar solo los pedidos que están 'Pendiente' o 'En Camino'
+        const trabajosActivos = data.filter(p => p.estado === 'Pendiente' || p.estado === 'En Camino' || !p.estado);
+
+        if (trabajosActivos.length === 0) {
+          contenedor.innerHTML = '<div class="no-pedidos">✨ No hay servicios pendientes por el momento. ¡Buen trabajo!</div>';
+          return;
+        }
+
+        trabajosActivos.forEach(p => {
+          const estado = p.estado || 'Pendiente';
+          const esEnCamino = estado === 'En Camino';
+
+          const card = document.createElement('div');
+          card.className = `card-pedido ${esEnCamino ? 'en-camino' : ''}`;
+
+          // Lógica del botón según el estado
+          let botonHTML = '';
+          if (estado === 'Pendiente') {
+            botonHTML = `<button class="btn-accion btn-aceptar" onclick="cambiarEstado(${p.id}, 'En Camino')">🔵 Aceptar Servicio</button>`;
+          } else if (estado === 'En Camino') {
+            botonHTML = `<button class="btn-accion btn-completar" onclick="cambiarEstado(${p.id}, 'Finalizado')">🟢 Finalizar Servicio</button>`;
+          }
+
+          card.innerHTML = `
+            <div class="cliente-nombre">👤 ${p.cliente}</div>
+            <div class="servicio-tipo">🧹 ${p.servicio}</div>
+            <div class="info-row">
+              <span>📍 Distrito:</span> <strong>${p.distrito}</strong>
+            </div>
+            <div class="info-row">
+              <span>📌 Estado actual:</span> <strong>${estado}</strong>
+            </div>
+            <div class="precio-tag">S/ ${parseFloat(p.precio).toFixed(2)}</div>
+            ${botonHTML}
+          `;
+
+          contenedor.appendChild(card);
+        });
+
+      } catch (err) {
+        console.error('Error al cargar trabajos:', err);
+      }
+    }
+
+    async function cambiarEstado(id, nuevoEstado) {
+      try {
+        await fetch(`${API_URL}/${id}/estado`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ estado: nuevoEstado })
+        });
+        cargarTrabajos(); // Recargar la pantalla del trabajador
+      } catch (err) {
+        console.error('Error al actualizar estado:', err);
+      }
+    }
+
+    // Carga inicial y auto-actualización cada 5 segundos
+    cargarTrabajos();
+    setInterval(cargarTrabajos, 5000);
+  </script>
+</body>
+</html>

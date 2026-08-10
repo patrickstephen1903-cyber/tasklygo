@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Tasklygo - Operaciones de Limpieza</title>
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 40px; }
+    h1 { text-align: center; color: #2c3e50; }
+    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 950px; margin: 20px auto; }
+    label { display: block; margin-top: 10px; font-weight: bold; color: #34495e; }
+    input { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+    button.btn-guardar { background-color: #27ae60; color: white; border: none; padding: 10px 15px; margin-top: 15px; border-radius: 4px; cursor: pointer; font-size: 14px; width: 100%; font-weight: bold;}
+    button.btn-guardar:hover { background-color: #219150; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px;}
+    th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+    th { background-color: #2980b9; color: white; }
+    
+    /* Botones de Editar y Eliminar (Generales) */
+    .btn-editar { background-color: #f1c40f; color: #212529; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; margin-bottom: 5px; width: 100%; font-weight: bold;}
+    .btn-eliminar { background-color: #34495e; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; width: 100%;}
+    
+    /* Botones de Cambio de Estado (NUEVOS COLORES) */
+    .btn-camino { background-color: #3498db; color: white; border: none; padding: 4px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-top: 4px; width: 100%;}
+    .btn-fin { background-color: #2ecc71; color: white; border: none; padding: 4px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-top: 4px; width: 100%;}
+    .btn-cancelar { background-color: #e74c3c; color: white; border: none; padding: 4px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-top: 4px; width: 100%;}
+    
+    /* Etiquetas visuales de Estado (COLORES DEL TEXTO) */
+    .badge { padding: 5px 10px; border-radius: 20px; font-weight: bold; color: white; display: inline-block; margin-bottom: 5px;}
+    .estado-pendiente { background-color: #f1c40f; color: #212529; } /* 🟡 Amarillo */
+    .estado-camino { background-color: #3498db; } /* 🔵 Azul */
+    .estado-finalizado { background-color: #27ae60; } /* 🟢 Verde */
+    .estado-cancelado { background-color: #e74c3c; } /* 🔴 Rojo */
+  </style>
+</head>
+<body>
+
+  <h1>✨ Tasklygo - Panel de Limpieza</h1>
+
+  <!-- Formulario -->
+  <div class="card">
+    <h2>Nuevo Servicio de Limpieza</h2>
+    <form id="formPedido">
+      <label>Cliente:</label>
+      <input type="text" id="cliente" required placeholder="Ej. Familia Pérez">
+
+      <label>Servicio de Limpieza a realizar:</label>
+      <input type="text" id="servicio" required placeholder="Ej. Limpieza profunda de sala y cocina">
+
+      <label>Distrito:</label>
+      <input type="text" id="distrito" required placeholder="Ej. Miraflores">
+
+      <label>Precio (S/):</label>
+      <input type="number" step="0.01" id="precio" required placeholder="Ej. 60.00">
+
+      <button type="submit" class="btn-guardar">Registrar Servicio</button>
+    </form>
+  </div>
+
+  <!-- Tabla -->
+  <div class="card">
+    <h2>Trabajos Activos</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Cliente</th>
+          <th>Limpieza de...</th>
+          <th>Distrito</th>
+          <th>Precio</th>
+          <th>Fechas</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="tablaPedidos">
+        <!-- Carga dinámica -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:3000/pedidos';
+
+    // 1. Obtener lista de pedidos
+    async function obtenerPedidos() {
+      try {
+        const res = await fetch(API_URL);
+        const data = await res.json();
+        
+        const tbody = document.getElementById('tablaPedidos');
+        tbody.innerHTML = '';
+
+        data.forEach(p => {
+          let fechaFormateada = new Date(p.fecha).toLocaleString();
+          if (p.fecha_actualizacion) {
+            fechaFormateada += `<br><small style="color: #6c757d; font-weight: bold;">Editado: ${new Date(p.fecha_actualizacion).toLocaleString()}</small>`;
+          }
+
+          // Lógica para pintar el estado correcto con sus colores
+          let estadoTexto = p.estado || 'Pendiente';
+          let claseEstado = 'estado-pendiente';
+          if(estadoTexto === 'En Camino') claseEstado = 'estado-camino';
+          if(estadoTexto === 'Finalizado') claseEstado = 'estado-finalizado';
+          if(estadoTexto === 'Cancelado') claseEstado = 'estado-cancelado';
+
+          // Solo mostramos los botones de cambiar estado si NO está finalizado ni cancelado
+          let botonesEstado = '';
+          if (estadoTexto !== 'Finalizado' && estadoTexto !== 'Cancelado') {
+            botonesEstado = `
+              <button class="btn-camino" onclick="cambiarEstado(${p.id}, 'En Camino')">🔵 En Camino</button>
+              <button class="btn-fin" onclick="cambiarEstado(${p.id}, 'Finalizado')">🟢 Finalizar</button>
+              <button class="btn-cancelar" onclick="cambiarEstado(${p.id}, 'Cancelado')">🔴 Cancelar</button>
+            `;
+          }
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${p.id}</td>
+            <td>${p.cliente}</td>
+            <td>${p.servicio}</td>
+            <td>${p.distrito}</td>
+            <td>S/ ${parseFloat(p.precio).toFixed(2)}</td>
+            <td><small>${fechaFormateada}</small></td>
+            <td>
+                <span class="badge ${claseEstado}">${estadoTexto}</span><br>
+                ${botonesEstado}
+            </td>
+            <td>
+                <button class="btn-editar">Editar Detalles</button>
+                <button class="btn-eliminar">Borrar Registro</button>
+            </td>
+          `;
+          
+          tr.querySelector('.btn-eliminar').addEventListener('click', () => eliminarPedido(p.id));
+          tr.querySelector('.btn-editar').addEventListener('click', () => editarPedido(p));
+
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error('Error al cargar pedidos:', err);
+      }
+    }
+
+    // 2. Guardar pedido
+    document.getElementById('formPedido').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const nuevoPedido = {
+        cliente: document.getElementById('cliente').value,
+        servicio: document.getElementById('servicio').value,
+        distrito: document.getElementById('distrito').value,
+        precio: parseFloat(document.getElementById('precio').value)
+      };
+      try {
+        await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(nuevoPedido)
+        });
+        document.getElementById('formPedido').reset();
+        obtenerPedidos();
+      } catch (err) {
+        console.error('Error al guardar pedido:', err);
+      }
+    });
+
+    // 3. Eliminar pedido
+    async function eliminarPedido(id) {
+      if (!confirm(`¿Estás seguro de eliminar el registro completo del servicio con ID ${id}?`)) return;
+      try {
+        await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+        obtenerPedidos();
+      } catch (err) { console.error('Error al eliminar:', err); }
+    }
+
+    // 4. Editar pedido
+    async function editarPedido(pedido) {
+      const nuevoCliente = prompt('Cliente:', pedido.cliente); if (nuevoCliente === null) return;
+      const nuevoServicio = prompt('Servicio de Limpieza:', pedido.servicio); if (nuevoServicio === null) return;
+      const nuevoDistrito = prompt('Distrito:', pedido.distrito); if (nuevoDistrito === null) return;
+      const nuevoPrecio = prompt('Precio (S/):', pedido.precio); if (nuevoPrecio === null) return;
+
+      const pedidoActualizado = {
+        cliente: nuevoCliente, servicio: nuevoServicio,
+        distrito: nuevoDistrito, precio: parseFloat(nuevoPrecio)
+      };
+
+      try {
+        await fetch(`${API_URL}/${pedido.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(pedidoActualizado)
+        });
+        obtenerPedidos();
+      } catch (err) { console.error('Error al editar:', err); }
+    }
+
+    // 5. Cambiar Estado
+    async function cambiarEstado(id, nuevoEstado) {
+      // Si va a cancelar, le pedimos confirmación por seguridad
+      if (nuevoEstado === 'Cancelado') {
+          if (!confirm('¿El cliente canceló este servicio? Esta acción no se puede deshacer.')) return;
+      }
+      
+      try {
+        await fetch(`${API_URL}/${id}/estado`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ estado: nuevoEstado })
+        });
+        obtenerPedidos();
+      } catch (err) {
+        console.error('Error al cambiar estado:', err);
+      }
+    }
+
+    // Carga inicial
+    obtenerPedidos();
+  </script>
+</body>
+</html>
