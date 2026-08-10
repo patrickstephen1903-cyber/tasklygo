@@ -63,7 +63,6 @@ fastify.delete('/pedidos/:id', async (request, reply) => {
 });
 
 // ACTUALIZAR un pedido
-// ACTUALIZAR un pedido
 fastify.put('/pedidos/:id', async (request, reply) => {
   const { id } = request.params;
   const { cliente, servicio, distrito, precio } = request.body;
@@ -79,11 +78,7 @@ fastify.put('/pedidos/:id', async (request, reply) => {
   }
 });
 
-// Iniciar servidor
-const start = async () => {
-  try {
-
-    // RUTA RÁPIDA PARA CAMBIAR SOLO EL ESTADO
+// RUTA RÁPIDA PARA CAMBIAR SOLO EL ESTADO
 fastify.put('/pedidos/:id/estado', async (request, reply) => {
   const { id } = request.params;
   const { estado } = request.body;
@@ -99,8 +94,12 @@ fastify.put('/pedidos/:id/estado', async (request, reply) => {
   }
 });
 
-    await fastify.listen({ port: 3000 });
-    console.log('Servidor corriendo en http://localhost:3000');
+// Iniciar servidor
+const start = async () => {
+  try {
+    const PORT = process.env.PORT || 3000;
+    await fastify.listen({ port: PORT, host: '0.0.0.0' });
+    console.log(`Servidor corriendo en el puerto ${PORT}`);
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);
