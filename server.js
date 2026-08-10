@@ -7,15 +7,14 @@ dotenv.config();
 
 const fastify = Fastify({ logger: true });
 
-// Permite peticiones desde archivos locales (origin 'null') y cualquier servidor local
+// Permite peticiones CORS
 await fastify.register(cors, { 
   origin: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type']
 });
 
-// Conexión a PostgreSQL
-// Conexión a PostgreSQL con soporte SSL
+// Conexión a PostgreSQL con SSL
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
@@ -99,6 +98,21 @@ fastify.put('/pedidos/:id/estado', async (request, reply) => {
 // Iniciar servidor
 const start = async () => {
   try {
+    // Auto-crear la tabla si no existe en PostgreSQL
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS pedidos (
+        id SERIAL PRIMARY KEY,
+        cliente VARCHAR(250) NOT NULL,
+        servicio VARCHAR(250) NOT NULL,
+        distrito VARCHAR(250) NOT NULL,
+        precio NUMERIC(10, 2) NOT NULL,
+        estado VARCHAR(50) DEFAULT 'Pendiente',
+        fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log('Tabla "pedidos" verificada / creada con éxito');
+
     const PORT = process.env.PORT || 3000;
     await fastify.listen({ port: PORT, host: '0.0.0.0' });
     console.log(`Servidor corriendo en el puerto ${PORT}`);
