@@ -2,6 +2,8 @@ import Fastify from 'fastify';
 import pg from 'pg';
 import dotenv from 'dotenv';
 import cors from '@fastify/cors';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 dotenv.config();
 
@@ -11,7 +13,7 @@ const fastify = Fastify({ logger: true });
 await fastify.register(cors, { 
   origin: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type']
+  allowedHeaders: ['Content-Type', 'Authorization']
 });
 
 // Conexión a PostgreSQL con SSL
@@ -24,6 +26,75 @@ const pool = new pg.Pool({
 fastify.get('/', async (request, reply) => {
   return { mensaje: '¡Servidor corriendo y listo para recibir peticiones! 🚀' };
 });
+
+// ==========================================
+// 🔑 RUTAS DE AUTENTICACIÓN (REGISTRO Y LOGIN)
+// ==========================================
+
+// 1. REGISTRO DE USUARIOS
+fastify.post('/registro', async (request, reply) => {
+  const { nombre, email, password, rol } = request.body;
+  try {
+    // Encriptar la contraseña
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Guardar en la base de datos (por defecto rol 'cliente')
+    const result = await pool.query(
+      'INSERT INTO usuarios (nombre, email, password, rol) VALUES ($1, $2, $3, $4) RETURNING id, nombre, email, rol',
+      [nombre, email, hashedPassword, rol || 'cliente']
+    );
+
+    return { mensaje: 'Usuario registrado con éxito', usuario: result.rows[0] };
+  } catch (error) {
+    console.error('Error en registro:', error);
+    // Código 23505 en Postgres es violación de clave única (email duplicado)
+    if (error.code === '23505') {
+      return reply.status(400).send({ error: 'El correo electrónico ya está registrado' });
+    }
+    reply.status(500).send({ error: 'Error al registrar el usuario' });
+  }
+});
+
+// 2. INICIO DE SESIÓN (LOGIN)
+fastify.post('/login', async (request, reply) => {
+  const { email, password } = request.body;
+  try {
+    // Buscar usuario por correo
+    const result = await pool.query('SELECT * FROM usuarios WHERE email = $1', [email]);
+    if (result.rows.length === 0) {
+      return reply.status(400).send({ error: 'Correo o contraseña incorrectos' });
+    }
+
+    const usuario = result.rows[0];
+
+    // Comparar la contraseña ingresada con la encriptada
+    const esValida = await bcrypt.compare(password, usuario.password);
+    if (!esValida) {
+      return reply.status(400).send({ error: 'Correo o contraseña incorrectos' });
+    }
+
+    // Generar un Token JWT válido por 8 horas
+    const token = jwt.sign(
+      { id: usuario.id, nombre: usuario.nombre, rol: usuario.rol },
+      process.env.JWT_SECRET || 'clave_secreta_tasklygo',
+      { expiresIn: '8h' }
+    );
+
+    return {
+      mensaje: 'Inicio de sesión exitoso',
+      token,
+      usuario: { id: usuario.id, nombre: usuario.nombre, email: usuario.email, rol: usuario.rol }
+    };
+  } catch (error) {
+    console.error('Error en login:', error);
+    reply.status(500).send({ error: 'Error al iniciar sesión' });
+  }
+});
+
+// ==========================================
+// 📋 RUTAS DE PEDIDOS
+// ==========================================
 
 // OBTENER todos los pedidos
 fastify.get('/pedidos', async (request, reply) => {
@@ -79,7 +150,7 @@ fastify.put('/pedidos/:id', async (request, reply) => {
   }
 });
 
-// RUTA RÁPIDA PARA CAMBIAR SOLO EL ESTADO
+// CAMBIAR ESTADO DE PEDIDO
 fastify.put('/pedidos/:id/estado', async (request, reply) => {
   const { id } = request.params;
   const { estado } = request.body;
@@ -98,7 +169,7 @@ fastify.put('/pedidos/:id/estado', async (request, reply) => {
 // Iniciar servidor
 const start = async () => {
   try {
-    // Auto-crear la tabla 'pedidos' si no existe en PostgreSQL
+    // Auto-crear la tabla 'pedidos' si no existe
     await pool.query(`
       CREATE TABLE IF NOT EXISTS pedidos (
         id SERIAL PRIMARY KEY,
@@ -111,9 +182,8 @@ const start = async () => {
         fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
-    console.log('Tabla "pedidos" verificada / creada con éxito');
 
-    // Auto-crear la tabla 'usuarios' si no existe en PostgreSQL
+    // Auto-crear la tabla 'usuarios' si no existe
     await pool.query(`
       CREATE TABLE IF NOT EXISTS usuarios (
         id SERIAL PRIMARY KEY,
@@ -124,7 +194,6 @@ const start = async () => {
         creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
-    console.log('Tabla "usuarios" verificada / creada con éxito');
 
     const PORT = process.env.PORT || 3000;
     await fastify.listen({ port: PORT, host: '0.0.0.0' });
