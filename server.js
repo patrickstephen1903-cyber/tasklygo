@@ -98,7 +98,7 @@ fastify.put('/pedidos/:id/estado', async (request, reply) => {
 // Iniciar servidor
 const start = async () => {
   try {
-    // Auto-crear la tabla si no existe en PostgreSQL
+    // Auto-crear la tabla 'pedidos' si no existe en PostgreSQL
     await pool.query(`
       CREATE TABLE IF NOT EXISTS pedidos (
         id SERIAL PRIMARY KEY,
@@ -112,6 +112,19 @@ const start = async () => {
       );
     `);
     console.log('Tabla "pedidos" verificada / creada con éxito');
+
+    // Auto-crear la tabla 'usuarios' si no existe en PostgreSQL
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS usuarios (
+        id SERIAL PRIMARY KEY,
+        nombre VARCHAR(100) NOT NULL,
+        email VARCHAR(150) UNIQUE NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        rol VARCHAR(20) DEFAULT 'cliente',
+        creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log('Tabla "usuarios" verificada / creada con éxito');
 
     const PORT = process.env.PORT || 3000;
     await fastify.listen({ port: PORT, host: '0.0.0.0' });
