@@ -7,7 +7,14 @@
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px; color: #333; }
     .container { max-width: 480px; margin: 0 auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
-    h1 { text-align: center; color: #2c3e50; font-size: 24px; margin-bottom: 5px; }
+    
+    /* Encabezado */
+    .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+    h1 { color: #2c3e50; font-size: 24px; margin: 0; }
+    .saludo { font-size: 14px; color: #27ae60; font-weight: bold; margin-bottom: 15px; display: block; }
+    .btn-logout { background-color: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; transition: background 0.2s; }
+    .btn-logout:hover { background-color: #c0392b; }
+
     .subtitle { text-align: center; color: #7f8c8d; font-size: 14px; margin-bottom: 25px; }
     label { display: block; margin-top: 15px; font-weight: bold; font-size: 14px; color: #34495e; }
     input, select { width: 100%; padding: 12px; margin-top: 6px; box-sizing: border-box; border: 1px solid #ccd1d1; border-radius: 8px; font-size: 15px; background-color: #fff; }
@@ -27,7 +34,14 @@
 <body>
 
   <div class="container">
-    <h1>✨ Tasklygo</h1>
+    <div class="header-bar">
+      <h1>✨ Tasklygo</h1>
+      <button onclick="cerrarSesion()" class="btn-logout">🚪 Cerrar Sesión</button>
+    </div>
+    
+    <!-- 👈 Aquí se insertará el saludo del usuario -->
+    <span id="nombre-usuario" class="saludo"></span>
+
     <p class="subtitle">Limpieza profesional a domicilio en Lima</p>
 
     <form id="formCliente">
@@ -77,8 +91,28 @@
       🎉 ¡Servicio solicitado con éxito! Un profesional de Tasklygo aceptará tu orden en breve.
     </div>
   </div>
-<script>
-  // 1. Apuntamos a la URL de producción en Render
+
+  <script>
+    // 🔒 0. Auth Guard (Protección de Ruta)
+    const token = localStorage.getItem('token');
+    if (!token) {
+      window.location.href = 'login.html';
+    }
+
+    // 👤 0.1 Mostrar Saludo Personalizado
+    const usuario = JSON.parse(localStorage.getItem('usuario'));
+    if (usuario && usuario.nombre) {
+      document.getElementById('nombre-usuario').innerText = `👋 Hola, ${usuario.nombre}`;
+      // Opcional: Autocompletar el campo cliente con su nombre
+      document.getElementById('cliente').value = usuario.nombre;
+    }
+
+    // 🚪 0.2 Función de Cerrar Sesión
+    function cerrarSesion() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('usuario');
+      window.location.href = 'login.html';
+    }
 
     // 1. Apuntamos a la URL de producción en Render
     const API_URL = 'https://tasklygo-backend.onrender.com/pedidos';
