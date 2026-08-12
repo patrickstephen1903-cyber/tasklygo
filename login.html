@@ -18,6 +18,7 @@
         input:focus { border-color: #2563eb; }
         button { width: 100%; padding: 12px; background-color: #2563eb; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; }
         button:hover { background-color: #1d4ed8; }
+        button:disabled { background-color: #94a3b8; cursor: not-allowed; }
         .mensaje { margin-top: 15px; text-align: center; font-size: 14px; font-weight: 600; }
         .exito { color: #16a34a; }
         .error { color: #dc2626; }
@@ -29,36 +30,36 @@
     <h2>Tasklygo</h2>
     
     <div class="tabs">
-        <div class="tab active" onclick="mostrarFormulario('login')">Ingresar</div>
-        <div class="tab" onclick="mostrarFormulario('registro')">Registrarse</div>
+        <div id="tab-login" class="tab active">Ingresar</div>
+        <div id="tab-registro" class="tab">Registrarse</div>
     </div>
 
     <!-- FORMULARIO LOGIN -->
-    <form id="form-login" onsubmit="login(event)">
+    <form id="form-login">
         <div class="form-group">
             <label>Correo Electrónico</label>
-            <input type="email" id="login-email" required placeholder="correo@ejemplo.com">
+            <input type="email" id="login-email" required placeholder="correo@ejemplo.com" autocomplete="username">
         </div>
         <div class="form-group">
             <label>Contraseña</label>
-            <input type="password" id="login-password" required placeholder="••••••••">
+            <input type="password" id="login-password" required placeholder="••••••••" autocomplete="current-password">
         </div>
-        <button type="submit">Entrar</button>
+        <button type="submit" id="btn-login">Entrar</button>
     </form>
 
     <!-- FORMULARIO REGISTRO -->
-    <form id="form-registro" style="display: none;" onsubmit="registro(event)">
+    <form id="form-registro" style="display: none;">
         <div class="form-group">
             <label>Nombre Completo</label>
             <input type="text" id="reg-nombre" required placeholder="Juan Pérez">
         </div>
         <div class="form-group">
             <label>Correo Electrónico</label>
-            <input type="email" id="reg-email" required placeholder="correo@ejemplo.com">
+            <input type="email" id="reg-email" required placeholder="correo@ejemplo.com" autocomplete="username">
         </div>
         <div class="form-group">
             <label>Contraseña</label>
-            <input type="password" id="reg-password" required placeholder="••••••••">
+            <input type="password" id="reg-password" required placeholder="••••••••" autocomplete="new-password">
         </div>
         <div class="form-group">
             <label>Tipo de Usuario</label>
@@ -67,40 +68,51 @@
                 <option value="trabajador">Trabajador / Técnico</option>
             </select>
         </div>
-        <button type="submit">Crear Cuenta</button>
+        <button type="submit" id="btn-registro">Crear Cuenta</button>
     </form>
 
     <div id="mensaje" class="mensaje"></div>
 </div>
 
 <script>
-    // URL de tu Backend en Render
-const API_URL = 'https://tasklygoweb1-1.onrender.com';
+    const API_URL = 'https://tasklygoweb1-1.onrender.com';
 
-    function mostrarFormulario(tipo) {
-        const tabs = document.querySelectorAll('.tab');
-        const formLogin = document.getElementById('form-login');
-        const formRegistro = document.getElementById('form-registro');
-        document.getElementById('mensaje').innerText = '';
+    // Elementos del DOM
+    const tabLogin = document.getElementById('tab-login');
+    const tabRegistro = document.getElementById('tab-registro');
+    const formLogin = document.getElementById('form-login');
+    const formRegistro = document.getElementById('form-registro');
+    const msg = document.getElementById('mensaje');
 
-        if (tipo === 'login') {
-            tabs[0].classList.add('active');
-            tabs[1].classList.remove('active');
-            formLogin.style.display = 'block';
-            formRegistro.style.display = 'none';
-        } else {
-            tabs[1].classList.add('active');
-            tabs[0].classList.remove('active');
-            formLogin.style.display = 'none';
-            formRegistro.style.display = 'block';
-        }
-    }
+    // Cambiar de Pestaña
+    tabLogin.addEventListener('click', () => {
+        tabLogin.classList.add('active');
+        tabRegistro.classList.remove('active');
+        formLogin.style.display = 'block';
+        formRegistro.style.display = 'none';
+        msg.innerText = '';
+    });
 
-    async function login(e) {
+    tabRegistro.addEventListener('click', () => {
+        tabRegistro.classList.add('active');
+        tabLogin.classList.remove('active');
+        formLogin.style.display = 'none';
+        formRegistro.style.display = 'block';
+        msg.innerText = '';
+    });
+
+    // EVENTO LOGIN
+    formLogin.addEventListener('submit', async (e) => {
         e.preventDefault();
+        console.log('📡 Enviando petición de Login...');
+        
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
-        const msg = document.getElementById('mensaje');
+        const btn = document.getElementById('btn-login');
+
+        btn.disabled = true;
+        btn.innerText = 'Cargando...';
+        msg.innerText = '';
 
         try {
             const res = await fetch(`${API_URL}/login`, {
@@ -109,40 +121,45 @@ const API_URL = 'https://tasklygoweb1-1.onrender.com';
                 body: JSON.stringify({ email, password })
             });
             const data = await res.json();
+            console.log('📩 Respuesta del servidor:', data);
 
             if (res.ok) {
-                // Guardar datos de sesión en la memoria del navegador
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('usuario', JSON.stringify(data.usuario));
-                
                 msg.className = 'mensaje exito';
                 msg.innerText = '¡Bienvenido! Redirigiendo...';
 
-                // Redirigir según el rol del usuario
                 setTimeout(() => {
-                    if (data.usuario.rol === 'trabajador') {
-                        window.location.href = 'trabajador.html';
-                    } else {
-                        window.location.href = 'cliente.html';
-                    }
+                    window.location.href = data.usuario.rol === 'trabajador' ? 'trabajador.html' : 'cliente.html';
                 }, 1000);
             } else {
                 msg.className = 'mensaje error';
                 msg.innerText = data.error || 'Error al iniciar sesión';
             }
         } catch (err) {
+            console.error('❌ Error de conexión:', err);
             msg.className = 'mensaje error';
             msg.innerText = 'Error de conexión con el servidor';
+        } finally {
+            btn.disabled = false;
+            btn.innerText = 'Entrar';
         }
-    }
+    });
 
-    async function registro(e) {
+    // EVENTO REGISTRO
+    formRegistro.addEventListener('submit', async (e) => {
         e.preventDefault();
+        console.log('📡 Enviando petición de Registro...');
+
         const nombre = document.getElementById('reg-nombre').value;
         const email = document.getElementById('reg-email').value;
         const password = document.getElementById('reg-password').value;
         const rol = document.getElementById('reg-rol').value;
-        const msg = document.getElementById('mensaje');
+        const btn = document.getElementById('btn-registro');
+
+        btn.disabled = true;
+        btn.innerText = 'Cargando...';
+        msg.innerText = '';
 
         try {
             const res = await fetch(`${API_URL}/registro`, {
@@ -151,20 +168,25 @@ const API_URL = 'https://tasklygoweb1-1.onrender.com';
                 body: JSON.stringify({ nombre, email, password, rol })
             });
             const data = await res.json();
+            console.log('📩 Respuesta del servidor:', data);
 
             if (res.ok) {
                 msg.className = 'mensaje exito';
-                msg.innerText = '¡Cuenta creada con éxito! Ahora puedes iniciar sesión.';
-                setTimeout(() => mostrarFormulario('login'), 1500);
+                msg.innerText = '¡Cuenta creada con éxito! Ahora puedes ingresar.';
+                setTimeout(() => tabLogin.click(), 1500);
             } else {
                 msg.className = 'mensaje error';
                 msg.innerText = data.error || 'Error al registrar';
             }
         } catch (err) {
+            console.error('❌ Error de conexión:', err);
             msg.className = 'mensaje error';
             msg.innerText = 'Error de conexión con el servidor';
+        } finally {
+            btn.disabled = false;
+            btn.innerText = 'Crear Cuenta';
         }
-    }
+    });
 </script>
 
 </body>
