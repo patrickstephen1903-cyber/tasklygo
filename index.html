@@ -79,7 +79,7 @@
   </div>
 
   <script>
-    const API_URL = 'http://localhost:3000/pedidos';
+    const API_URL = 'https://tasklygo-backend.onrender.com/pedidos';
 
     // 1. Obtener lista de pedidos
     async function obtenerPedidos() {
@@ -91,9 +91,22 @@
         tbody.innerHTML = '';
 
         data.forEach(p => {
-          let fechaFormateada = new Date(p.fecha).toLocaleString();
+          // Solución al problema de fecha (evalúa fecha_creacion o fecha)
+          const fechaOrigen = p.fecha_creacion || p.fecha;
+          let fechaFormateada = 'Sin fecha';
+          
+          if (fechaOrigen) {
+            const fechaObj = new Date(fechaOrigen);
+            if (!isNaN(fechaObj.getTime())) {
+              fechaFormateada = fechaObj.toLocaleString();
+            }
+          }
+
           if (p.fecha_actualizacion) {
-            fechaFormateada += `<br><small style="color: #6c757d; font-weight: bold;">Editado: ${new Date(p.fecha_actualizacion).toLocaleString()}</small>`;
+            const fechaEditObj = new Date(p.fecha_actualizacion);
+            if (!isNaN(fechaEditObj.getTime())) {
+              fechaFormateada += `<br><small style="color: #6c757d; font-weight: bold;">Editado: ${fechaEditObj.toLocaleString()}</small>`;
+            }
           }
 
           // Lógica para pintar el estado correcto con sus colores
@@ -119,7 +132,7 @@
             <td>${p.cliente}</td>
             <td>${p.servicio}</td>
             <td>${p.distrito}</td>
-            <td>S/ ${parseFloat(p.precio).toFixed(2)}</td>
+            <td>S/ ${parseFloat(p.precio || 0).toFixed(2)}</td>
             <td><small>${fechaFormateada}</small></td>
             <td>
                 <span class="badge ${claseEstado}">${estadoTexto}</span><br>
@@ -196,7 +209,6 @@
 
     // 5. Cambiar Estado
     async function cambiarEstado(id, nuevoEstado) {
-      // Si va a cancelar, le pedimos confirmación por seguridad
       if (nuevoEstado === 'Cancelado') {
           if (!confirm('¿El cliente canceló este servicio? Esta acción no se puede deshacer.')) return;
       }
@@ -213,8 +225,9 @@
       }
     }
 
-    // Carga inicial
+    // Carga inicial y auto-actualización cada 5 segundos
     obtenerPedidos();
+    setInterval(obtenerPedidos, 5000);
   </script>
 </body>
 </html>
