@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tasklygo - Iniciar Sesión</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f4f6f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        h2 { text-align: center; color: #1e293b; margin-bottom: 20px; }
+        .tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; }
+        .tab { flex: 1; text-align: center; padding: 10px; cursor: pointer; font-weight: bold; color: #64748b; }
+        .tab.active { color: #2563eb; border-bottom: 3px solid #2563eb; margin-bottom: -2px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: #475569; font-size: 14px; font-weight: 600; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; outline: none; }
+        input:focus { border-color: #2563eb; }
+        button { width: 100%; padding: 12px; background-color: #2563eb; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button:hover { background-color: #1d4ed8; }
+        .mensaje { margin-top: 15px; text-align: center; font-size: 14px; font-weight: 600; }
+        .exito { color: #16a34a; }
+        .error { color: #dc2626; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Tasklygo</h2>
+    
+    <div class="tabs">
+        <div class="tab active" onclick="mostrarFormulario('login')">Ingresar</div>
+        <div class="tab" onclick="mostrarFormulario('registro')">Registrarse</div>
+    </div>
+
+    <!-- FORMULARIO LOGIN -->
+    <form id="form-login" onsubmit="login(event)">
+        <div class="form-group">
+            <label>Correo Electrónico</label>
+            <input type="email" id="login-email" required placeholder="correo@ejemplo.com">
+        </div>
+        <div class="form-group">
+            <label>Contraseña</label>
+            <input type="password" id="login-password" required placeholder="••••••••">
+        </div>
+        <button type="submit">Entrar</button>
+    </form>
+
+    <!-- FORMULARIO REGISTRO -->
+    <form id="form-registro" style="display: none;" onsubmit="registro(event)">
+        <div class="form-group">
+            <label>Nombre Completo</label>
+            <input type="text" id="reg-nombre" required placeholder="Juan Pérez">
+        </div>
+        <div class="form-group">
+            <label>Correo Electrónico</label>
+            <input type="email" id="reg-email" required placeholder="correo@ejemplo.com">
+        </div>
+        <div class="form-group">
+            <label>Contraseña</label>
+            <input type="password" id="reg-password" required placeholder="••••••••">
+        </div>
+        <div class="form-group">
+            <label>Tipo de Usuario</label>
+            <select id="reg-rol">
+                <option value="cliente">Cliente (Solicitar Servicios)</option>
+                <option value="trabajador">Trabajador / Técnico</option>
+            </select>
+        </div>
+        <button type="submit">Crear Cuenta</button>
+    </form>
+
+    <div id="mensaje" class="mensaje"></div>
+</div>
+
+<script>
+    // URL de tu Backend en Render
+    const API_URL = 'https://tasklygo.onrender.com';
+
+    function mostrarFormulario(tipo) {
+        const tabs = document.querySelectorAll('.tab');
+        const formLogin = document.getElementById('form-login');
+        const formRegistro = document.getElementById('form-registro');
+        document.getElementById('mensaje').innerText = '';
+
+        if (tipo === 'login') {
+            tabs[0].classList.add('active');
+            tabs[1].classList.remove('active');
+            formLogin.style.display = 'block';
+            formRegistro.style.display = 'none';
+        } else {
+            tabs[1].classList.add('active');
+            tabs[0].classList.remove('active');
+            formLogin.style.display = 'none';
+            formRegistro.style.display = 'block';
+        }
+    }
+
+    async function login(e) {
+        e.preventDefault();
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        const msg = document.getElementById('mensaje');
+
+        try {
+            const res = await fetch(`${API_URL}/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                // Guardar datos de sesión en la memoria del navegador
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('usuario', JSON.stringify(data.usuario));
+                
+                msg.className = 'mensaje exito';
+                msg.innerText = '¡Bienvenido! Redirigiendo...';
+
+                // Redirigir según el rol del usuario
+                setTimeout(() => {
+                    if (data.usuario.rol === 'trabajador') {
+                        window.location.href = 'trabajador.html';
+                    } else {
+                        window.location.href = 'cliente.html';
+                    }
+                }, 1000);
+            } else {
+                msg.className = 'mensaje error';
+                msg.innerText = data.error || 'Error al iniciar sesión';
+            }
+        } catch (err) {
+            msg.className = 'mensaje error';
+            msg.innerText = 'Error de conexión con el servidor';
+        }
+    }
+
+    async function registro(e) {
+        e.preventDefault();
+        const nombre = document.getElementById('reg-nombre').value;
+        const email = document.getElementById('reg-email').value;
+        const password = document.getElementById('reg-password').value;
+        const rol = document.getElementById('reg-rol').value;
+        const msg = document.getElementById('mensaje');
+
+        try {
+            const res = await fetch(`${API_URL}/registro`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nombre, email, password, rol })
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                msg.className = 'mensaje exito';
+                msg.innerText = '¡Cuenta creada con éxito! Ahora puedes iniciar sesión.';
+                setTimeout(() => mostrarFormulario('login'), 1500);
+            } else {
+                msg.className = 'mensaje error';
+                msg.innerText = data.error || 'Error al registrar';
+            }
+        } catch (err) {
+            msg.className = 'mensaje error';
+            msg.innerText = 'Error de conexión con el servidor';
+        }
+    }
+</script>
+
+</body>
+</html>
