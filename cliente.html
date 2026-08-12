@@ -77,9 +77,11 @@
       🎉 ¡Servicio solicitado con éxito! Un profesional de Tasklygo aceptará tu orden en breve.
     </div>
   </div>
+<script>
+  // 1. Apuntamos a la URL de producción en Render
 
-  <script>
-    const API_URL = 'http://localhost:3000/pedidos';
+    // 1. Apuntamos a la URL de producción en Render
+    const API_URL = 'https://tasklygo-backend.onrender.com/pedidos';
 
     // Selección visual del método de pago
     const cards = document.querySelectorAll('.payment-card');
@@ -122,5 +124,6 @@
       }
     });
   </script>
+
 </body>
 </html>
