@@ -10,8 +10,22 @@
     .header h1 { font-size: 22px; margin: 0; color: #2c3e50; }
     .header p { font-size: 13px; color: #7f8c8d; margin-top: 5px; }
 
-    .card-pedido { background: white; border-radius: 12px; padding: 18px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-left: 6px solid #f1c40f; }
-    .card-pedido.en-camino { border-left-color: #3498db; }
+    /* Configuración base de la tarjeta */
+    .card-pedido { 
+      background: white; 
+      border-radius: 12px; 
+      padding: 18px; 
+      margin-bottom: 15px; 
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+      border-left: 6px solid #f1c40f; 
+      transition: all 0.3s ease;
+    }
+
+    /* 🎨 Sistema de 4 Colores según el Estado */
+    .card-pedido.pendiente { border-left-color: #f1c40f; }  /* 🟡 Amarillo */
+    .card-pedido.en-camino { border-left-color: #3498db; }  /* 🔵 Azul */
+    .card-pedido.finalizado { border-left-color: #2ecc71; } /* 🟢 Verde */
+    .card-pedido.cancelado { border-left-color: #e74c3c; }  /* 🔴 Rojo */
 
     .cliente-nombre { font-size: 18px; font-weight: bold; margin-bottom: 5px; color: #2c3e50; }
     .servicio-tipo { font-size: 14px; color: #34495e; font-weight: 600; margin-bottom: 10px; }
@@ -40,7 +54,7 @@
   </div>
 
   <script>
-    const API_URL = 'http://localhost:3000/pedidos';
+    const API_URL = 'https://tasklygo-backend.onrender.com/pedidos';
 
     async function cargarTrabajos() {
       try {
@@ -60,10 +74,12 @@
 
         trabajosActivos.forEach(p => {
           const estado = p.estado || 'Pendiente';
-          const esEnCamino = estado === 'En Camino';
+          
+          // Asigna la clase dinámica para cambiar el color de la barra lateral (ej: 'en-camino')
+          const claseEstado = estado.toLowerCase().replace(/\s+/g, '-');
 
           const card = document.createElement('div');
-          card.className = `card-pedido ${esEnCamino ? 'en-camino' : ''}`;
+          card.className = `card-pedido ${claseEstado}`;
 
           // Lógica del botón según el estado
           let botonHTML = '';
@@ -82,7 +98,7 @@
             <div class="info-row">
               <span>📌 Estado actual:</span> <strong>${estado}</strong>
             </div>
-            <div class="precio-tag">S/ ${parseFloat(p.precio).toFixed(2)}</div>
+            <div class="precio-tag">S/ ${parseFloat(p.precio || 0).toFixed(2)}</div>
             ${botonHTML}
           `;
 
