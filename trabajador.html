@@ -3,67 +3,105 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tasklygo - Panel del Trabajador</title>
+  <title>Taskly.go - Panel del Cliente</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 15px; color: #2c3e50; }
-    .header { margin-bottom: 20px; }
-    
-    /* Encabezado */
-    .header-bar { display: flex; justify-content: space-between; align-items: center; }
-    .header h1 { font-size: 22px; margin: 0; color: #2c3e50; }
-    .saludo { font-size: 13px; color: #2980b9; font-weight: bold; margin-top: 4px; display: block; }
-    .header p { font-size: 13px; color: #7f8c8d; margin-top: 5px; }
-    .btn-logout { background-color: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; transition: background 0.2s; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; color: #2c3e50; }
+    .container { max-width: 1050px; margin: 0 auto; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .header h1 { font-size: 24px; margin: 0; }
+    .saludo { font-size: 14px; color: #2980b9; font-weight: bold; margin-top: 4px; display: block; }
+    .btn-logout { background-color: #e74c3c; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; }
     .btn-logout:hover { background-color: #c0392b; }
 
-    /* Configuración base de la tarjeta */
-    .card-pedido { 
-      background: white; 
-      border-radius: 12px; 
-      padding: 18px; 
-      margin-bottom: 15px; 
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
-      border-left: 6px solid #f1c40f; 
-      transition: all 0.3s ease;
-    }
+    .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 25px; }
+    .card h2 { margin-top: 0; font-size: 18px; color: #34495e; margin-bottom: 15px; }
 
-    /* 🎨 Sistema de 4 Colores según el Estado */
-    .card-pedido.pendiente { border-left-color: #f1c40f; }  /* 🟡 Amarillo */
-    .card-pedido.en-camino { border-left-color: #3498db; }  /* 🔵 Azul */
-    .card-pedido.finalizado { border-left-color: #2ecc71; } /* 🟢 Verde */
-    .card-pedido.cancelado { border-left-color: #e74c3c; }  /* 🔴 Rojo */
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+    label { display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px; color: #555; }
+    input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+    .btn-submit { background-color: #27ae60; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 15px; width: 100%; margin-top: 15px; }
+    .btn-submit:hover { background-color: #219150; }
 
-    .cliente-nombre { font-size: 18px; font-weight: bold; margin-bottom: 5px; color: #2c3e50; }
-    .servicio-tipo { font-size: 14px; color: #34495e; font-weight: 600; margin-bottom: 10px; }
-    .info-row { font-size: 13px; color: #555; margin-bottom: 5px; display: flex; justify-content: space-between; }
-    .precio-tag { font-size: 18px; font-weight: bold; color: #27ae60; text-align: right; margin-top: 10px; }
+    .table-responsive { overflow-x: auto; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    table { width: 100%; border-collapse: collapse; text-align: center; font-size: 14px; }
+    th, td { padding: 12px 10px; border-bottom: 1px solid #eee; vertical-align: middle; }
+    th { background-color: #f8f9fa; color: #7f8c8d; font-weight: bold; font-size: 13px; text-transform: uppercase; }
 
-    /* Botones de Acción */
-    .btn-accion { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer; margin-top: 12px; transition: background 0.2s; }
-    .btn-aceptar { background-color: #3498db; color: white; }
-    .btn-aceptar:hover { background-color: #2980b9; }
-    .btn-completar { background-color: #2ecc71; color: white; }
-    .btn-completar:hover { background-color: #27ae60; }
+    /* Badges de Estado */
+    .badge { padding: 5px 12px; border-radius: 12px; font-weight: bold; font-size: 12px; display: inline-block; margin-bottom: 5px; }
+    .badge-pendiente { background-color: #f1c40f; color: #fff; }
+    .badge-en-camino { background-color: #3498db; color: #fff; }
+    .badge-finalizado { background-color: #2ecc71; color: #fff; }
+    .badge-cancelado { background-color: #e74c3c; color: #fff; }
 
-    .no-pedidos { text-align: center; color: #95a5a6; margin-top: 40px; font-size: 14px; }
+    /* Botones de la tabla */
+    .btn-tbl { border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; margin: 2px 0; display: block; width: 100%; }
+    .btn-estado-camino { background-color: #3498db; color: white; }
+    .btn-estado-finalizar { background-color: #2ecc71; color: white; }
+    .btn-estado-cancelar { background-color: #e74c3c; color: white; }
+    .btn-editar { background-color: #f1c40f; color: #2c3e50; }
+    .btn-borrar { background-color: #34495e; color: white; }
+
+    .btn-tbl:hover { opacity: 0.9; }
   </style>
 </head>
 <body>
 
-  <div class="header">
-    <div class="header-bar">
-      <h1>👷‍♂️ Tasklygo Pro</h1>
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1>✨ Taskly.go - Panel de Gestión</h1>
+        <span id="nombre-usuario" class="saludo"></span>
+      </div>
       <button onclick="cerrarSesion()" class="btn-logout">🚪 Cerrar Sesión</button>
     </div>
 
-    <!-- 👈 Aquí se insertará el saludo del trabajador -->
-    <span id="nombre-usuario" class="saludo"></span>
+    <!-- Formulario para agregar pedido -->
+    <div class="card">
+      <h2>📋 Solicitar Nuevo Servicio</h2>
+      <form id="pedidoForm">
+        <div class="form-grid">
+          <div>
+            <label>Nombre del Cliente:</label>
+            <input type="text" id="cliente" required placeholder="Ej. Juan Pérez">
+          </div>
+          <div>
+            <label>Tipo de Servicio:</label>
+            <input type="text" id="servicio" required placeholder="Ej. Limpieza de Cocina">
+          </div>
+          <div>
+            <label>Distrito:</label>
+            <input type="text" id="distrito" required placeholder="Ej. San Isidro">
+          </div>
+          <div>
+            <label>Precio (S/):</label>
+            <input type="number" id="precio" step="0.01" required placeholder="12.00">
+          </div>
+        </div>
+        <button type="submit" class="btn-submit">➕ Registrar Pedido</button>
+      </form>
+    </div>
 
-    <p>Servicios de Limpieza Disponibles en Lima</p>
-  </div>
-
-  <div id="listaTrabajos">
-    <!-- Carga dinámica de trabajos -->
+    <!-- Tabla de Pedidos -->
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Cliente</th>
+            <th>Servicio</th>
+            <th>Distrito</th>
+            <th>Precio</th>
+            <th>Fecha</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tablaPedidos">
+          <!-- Carga dinámica -->
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <script>
@@ -76,10 +114,11 @@
     // 👤 0.1 Mostrar Saludo Personalizado
     const usuario = JSON.parse(localStorage.getItem('usuario'));
     if (usuario && usuario.nombre) {
-      document.getElementById('nombre-usuario').innerText = `👷‍♂️ Hola, ${usuario.nombre}`;
+      document.getElementById('nombre-usuario').innerText = `👋 Hola, ${usuario.nombre}`;
+      document.getElementById('cliente').value = usuario.nombre;
     }
 
-    // 🚪 0.2 Función de Cerrar Sesión
+    // 🚪 0.2 Cerrar Sesión
     function cerrarSesion() {
       localStorage.removeItem('token');
       localStorage.removeItem('usuario');
@@ -88,60 +127,122 @@
 
     const API_URL = 'https://tasklygo-backend.onrender.com/pedidos';
 
-    async function cargarTrabajos() {
+    // 🔄 Cargar Lista de Pedidos
+    async function cargarPedidos() {
       try {
         const res = await fetch(API_URL);
         const data = await res.json();
 
-        const contenedor = document.getElementById('listaTrabajos');
-        contenedor.innerHTML = '';
+        const tbody = document.getElementById('tablaPedidos');
+        tbody.innerHTML = '';
 
-        // Filtramos para mostrar solo los pedidos que están 'Pendiente' o 'En Camino'
-        const trabajosActivos = data.filter(p => p.estado === 'Pendiente' || p.estado === 'En Camino' || !p.estado);
-
-        if (trabajosActivos.length === 0) {
-          contenedor.innerHTML = '<div class="no-pedidos">✨ No hay servicios pendientes por el momento. ¡Buen trabajo!</div>';
+        if (data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="8" style="color: #95a5a6; padding: 20px;">No hay registros disponibles.</td></tr>';
           return;
         }
 
-        trabajosActivos.forEach(p => {
+        data.forEach(p => {
           const estado = p.estado || 'Pendiente';
-          
-          // Asigna la clase dinámica para cambiar el color de la barra lateral (ej: 'en-camino')
-          const claseEstado = estado.toLowerCase().replace(/\s+/g, '-');
 
-          const card = document.createElement('div');
-          card.className = `card-pedido ${claseEstado}`;
+          // 🕒 Lógica de Fechas CORREGIDA: Se compara el TEXTO VISIBLE
+          const fechaStr = p.fecha ? new Date(p.fecha).toLocaleString('es-PE') : '';
+          const editadoStr = p.editado ? new Date(p.editado).toLocaleString('es-PE') : '';
 
-          // Lógica del botón según el estado
-          let botonHTML = '';
-          if (estado === 'Pendiente') {
-            botonHTML = `<button class="btn-accion btn-aceptar" onclick="cambiarEstado(${p.id}, 'En Camino')">🔵 Aceptar Servicio</button>`;
-          } else if (estado === 'En Camino') {
-            botonHTML = `<button class="btn-accion btn-completar" onclick="cambiarEstado(${p.id}, 'Finalizado')">🟢 Finalizar Servicio</button>`;
+          let textoEditado = '';
+          if (editadoStr && editadoStr !== fechaStr) {
+            textoEditado = `<br><small style="color: #7f8c8d; font-size: 11px;">Editado: ${editadoStr}</small>`;
           }
 
-          card.innerHTML = `
-            <div class="cliente-nombre">👤 ${p.cliente}</div>
-            <div class="servicio-tipo">🧹 ${p.servicio}</div>
-            <div class="info-row">
-              <span>📍 Distrito:</span> <strong>${p.distrito}</strong>
-            </div>
-            <div class="info-row">
-              <span>📌 Estado actual:</span> <strong>${estado}</strong>
-            </div>
-            <div class="precio-tag">S/ ${parseFloat(p.precio || 0).toFixed(2)}</div>
-            ${botonHTML}
-          `;
+          // Clase dinámica para el color de la etiqueta
+          const claseBadge = estado.toLowerCase().replace(/\s+/g, '-');
 
-          contenedor.appendChild(card);
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><strong>${p.id}</strong></td>
+            <td>${p.cliente}</td>
+            <td>${p.servicio}</td>
+            <td>${p.distrito}</td>
+            <td>S/ ${parseFloat(p.precio || 0).toFixed(2)}</td>
+            <td>${fechaStr}${textoEditado}</td>
+            <td>
+              <span class="badge badge-${claseBadge}">${estado}</span><br>
+              <button class="btn-tbl btn-estado-camino" onclick="cambiarEstado(${p.id}, 'En Camino')">🔵 En Camino</button>
+              <button class="btn-tbl btn-estado-finalizar" onclick="cambiarEstado(${p.id}, 'Finalizado')">🟢 Finalizar</button>
+              <button class="btn-tbl btn-estado-cancelar" onclick="cambiarEstado(${p.id}, 'Cancelado')">🔴 Cancelar</button>
+            </td>
+            <td>
+              <button class="btn-tbl btn-editar" onclick="editarDetalles(${p.id}, '${p.cliente}', '${p.servicio}', '${p.distrito}', ${p.precio})">Editar Detalles</button>
+              <button class="btn-tbl btn-borrar" onclick="borrarRegistro(${p.id})">Borrar Registro</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
         });
 
       } catch (err) {
-        console.error('Error al cargar trabajos:', err);
+        console.error('Error al cargar pedidos:', err);
       }
     }
 
+    // ➕ Crear Nuevo Pedido
+    document.getElementById('pedidoForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const nuevoPedido = {
+        cliente: document.getElementById('cliente').value,
+        servicio: document.getElementById('servicio').value,
+        distrito: document.getElementById('distrito').value,
+        precio: parseFloat(document.getElementById('precio').value)
+      };
+
+      try {
+        await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(nuevoPedido)
+        });
+
+        // Limpiar inputs
+        document.getElementById('servicio').value = '';
+        document.getElementById('distrito').value = '';
+        document.getElementById('precio').value = '';
+        cargarPedidos();
+      } catch (err) {
+        console.error('Error al guardar pedido:', err);
+      }
+    });
+
+    // ✏️ Editar Detalles de un Pedido
+    async function editarDetalles(id, clienteActual, servicioActual, distritoActual, precioActual) {
+      const nuevoCliente = prompt('Cliente:', clienteActual);
+      if (nuevoCliente === null) return;
+
+      const nuevoServicio = prompt('Servicio:', servicioActual);
+      if (nuevoServicio === null) return;
+
+      const nuevoDistrito = prompt('Distrito:', distritoActual);
+      if (nuevoDistrito === null) return;
+
+      const nuevoPrecio = prompt('Precio (S/):', precioActual);
+      if (nuevoPrecio === null) return;
+
+      try {
+        await fetch(`${API_URL}/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            cliente: nuevoCliente,
+            servicio: nuevoServicio,
+            distrito: nuevoDistrito,
+            precio: parseFloat(nuevoPrecio)
+          })
+        });
+        cargarPedidos();
+      } catch (err) {
+        console.error('Error al editar detalles:', err);
+      }
+    }
+
+    // 🔄 Cambiar Estado
     async function cambiarEstado(id, nuevoEstado) {
       try {
         await fetch(`${API_URL}/${id}/estado`, {
@@ -149,15 +250,29 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ estado: nuevoEstado })
         });
-        cargarTrabajos(); // Recargar la pantalla del trabajador
+        cargarPedidos();
       } catch (err) {
-        console.error('Error al actualizar estado:', err);
+        console.error('Error al cambiar estado:', err);
+      }
+    }
+
+    // 🗑️ Borrar Registro
+    async function borrarRegistro(id) {
+      if (!confirm('¿Seguro que deseas eliminar este pedido?')) return;
+
+      try {
+        await fetch(`${API_URL}/${id}`, {
+          method: 'DELETE'
+        });
+        cargarPedidos();
+      } catch (err) {
+        console.error('Error al borrar registro:', err);
       }
     }
 
     // Carga inicial y auto-actualización cada 5 segundos
-    cargarTrabajos();
-    setInterval(cargarTrabajos, 5000);
+    cargarPedidos();
+    setInterval(cargarPedidos, 5000);
   </script>
 </body>
 </html>
