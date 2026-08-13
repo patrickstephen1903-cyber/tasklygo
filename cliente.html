@@ -144,7 +144,6 @@
         data.forEach(p => {
           const estado = p.estado || 'Pendiente';
 
-          // 🕒 LÓGICA DE FECHA LIMPIA (Se eliminó todo rastro de "Editado")
           const fechaObj = p.fecha ? new Date(p.fecha) : null;
           const fechaStr = fechaObj ? fechaObj.toLocaleString('es-PE') : '-';
 
@@ -157,7 +156,7 @@
             <td>${p.servicio}</td>
             <td>${p.distrito}</td>
             <td>S/ ${parseFloat(p.precio || 0).toFixed(2)}</td>
-            <td>${fechaStr}</td> <!-- Aquí solo mostramos la fecha original pura -->
+            <td>${fechaStr}</td>
             <td>
               <span class="badge badge-${claseBadge}">${estado}</span><br>
               <button class="btn-tbl btn-estado-camino" onclick="cambiarEstado(${p.id}, 'En Camino')">🔵 En Camino</button>
