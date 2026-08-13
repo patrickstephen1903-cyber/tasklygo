@@ -144,16 +144,16 @@
         data.forEach(p => {
           const estado = p.estado || 'Pendiente';
 
-          // 🕒 Lógica de Fechas con Margen Mínimo de 2 Minutos
-          const fechaObj = p.fecha ? new Date(p.fecha) : null;
-          const editadoObj = p.editado ? new Date(p.editado) : null;
+          // 🕒 LÓGICA DEFINITIVA DE FECHAS (En milisegundos puros)
+          const timeCreacion = p.fecha ? new Date(p.fecha).getTime() : 0;
+          const timeEditado = p.editado ? new Date(p.editado).getTime() : 0;
 
-          const fechaStr = fechaObj ? fechaObj.toLocaleString('es-PE') : '';
-          const editadoStr = editadoObj ? editadoObj.toLocaleString('es-PE') : '';
+          const fechaStr = timeCreacion ? new Date(timeCreacion).toLocaleString('es-PE') : '';
+          const editadoStr = timeEditado ? new Date(timeEditado).toLocaleString('es-PE') : '';
 
           let textoEditado = '';
-          // Solo muestra "Editado" si la diferencia es mayor a 2 minutos (120,000 ms)
-          if (fechaObj && editadoObj && (editadoObj - fechaObj > 120000)) {
+          // Solo se activa si la diferencia entre creación y edición es mayor a 15,000 ms (15 segundos)
+          if (timeCreacion > 0 && timeEditado > 0 && (timeEditado - timeCreacion > 15000)) {
             textoEditado = `<br><small style="color: #7f8c8d; font-size: 11px;">Editado: ${editadoStr}</small>`;
           }
 
