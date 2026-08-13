@@ -144,18 +144,9 @@
         data.forEach(p => {
           const estado = p.estado || 'Pendiente';
 
-          // 🕒 LÓGICA DEFINITIVA DE FECHAS (En milisegundos puros)
-          const timeCreacion = p.fecha ? new Date(p.fecha).getTime() : 0;
-          const timeEditado = p.editado ? new Date(p.editado).getTime() : 0;
-
-          const fechaStr = timeCreacion ? new Date(timeCreacion).toLocaleString('es-PE') : '';
-          const editadoStr = timeEditado ? new Date(timeEditado).toLocaleString('es-PE') : '';
-
-          let textoEditado = '';
-          // Solo se activa si la diferencia entre creación y edición es mayor a 15,000 ms (15 segundos)
-          if (timeCreacion > 0 && timeEditado > 0 && (timeEditado - timeCreacion > 15000)) {
-            textoEditado = `<br><small style="color: #7f8c8d; font-size: 11px;">Editado: ${editadoStr}</small>`;
-          }
+          // 🕒 LÓGICA DE FECHA LIMPIA (Se eliminó todo rastro de "Editado")
+          const fechaObj = p.fecha ? new Date(p.fecha) : null;
+          const fechaStr = fechaObj ? fechaObj.toLocaleString('es-PE') : '-';
 
           const claseBadge = estado.toLowerCase().replace(/\s+/g, '-');
 
@@ -166,7 +157,7 @@
             <td>${p.servicio}</td>
             <td>${p.distrito}</td>
             <td>S/ ${parseFloat(p.precio || 0).toFixed(2)}</td>
-            <td>${fechaStr}${textoEditado}</td>
+            <td>${fechaStr}</td> <!-- Aquí solo mostramos la fecha original pura -->
             <td>
               <span class="badge badge-${claseBadge}">${estado}</span><br>
               <button class="btn-tbl btn-estado-camino" onclick="cambiarEstado(${p.id}, 'En Camino')">🔵 En Camino</button>
