@@ -9,11 +9,10 @@
     .card { background: white; width: 100%; max-width: 420px; padding: 35px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); box-sizing: border-box; text-align: center; }
     h1 { color: #2c3e50; font-size: 24px; margin-bottom: 25px; display: flex; align-items: center; justify-content: center; gap: 8px; }
     
-    label { display: block; text-align: left; margin-top: 15px; font-weight: bold; font-size: 13px; color: #34495e; }
-    input { width: 100%; padding: 12px; margin-top: 6px; box-sizing: border-box; border: 1px solid #ccd1d1; border-radius: 8px; font-size: 15px; background-color: #fff; }
+    input { width: 100%; padding: 14px; margin-top: 12px; box-sizing: border-box; border: 1px solid #ccd1d1; border-radius: 8px; font-size: 15px; background-color: #fff; }
     input:focus { outline: none; border-color: #27ae60; box-shadow: 0 0 5px rgba(39, 174, 96, 0.2); }
     
-    button.btn-login { background-color: #27ae60; color: white; border: none; padding: 14px; margin-top: 25px; border-radius: 8px; cursor: pointer; font-size: 16px; width: 100%; font-weight: bold; box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3); transition: background 0.2s; }
+    button.btn-login { background-color: #27ae60; color: white; border: none; padding: 14px; margin-top: 20px; border-radius: 8px; cursor: pointer; font-size: 16px; width: 100%; font-weight: bold; box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3); transition: background 0.2s; }
     button.btn-login:hover { background-color: #219150; }
 
     .links-container { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; font-size: 14px; }
@@ -29,11 +28,8 @@
     <h1>✨ Tasklygo</h1>
 
     <form id="formLogin">
-      <label>Correo Electrónico:</label>
-      <input type="email" id="email" required placeholder="correo@ejemplo.com">
-
-      <label>Contraseña:</label>
-      <input type="password" id="password" required placeholder="••••••••••••">
+      <input type="text" id="email" required placeholder="Correo electrónico o número de celular">
+      <input type="password" id="password" required placeholder="Contraseña">
 
       <button type="submit" class="btn-login">Ingresar</button>
     </form>
@@ -49,7 +45,7 @@
   </div>
 
   <script>
-    const API_URL = 'https://tasklygo-backend.onrender.com'; // O tu ruta local si usas localhost:3000
+    const API_URL = 'https://tasklygo-backend.onrender.com';
 
     document.getElementById('formLogin').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -72,7 +68,6 @@
           localStorage.setItem('token', data.token);
           localStorage.setItem('usuario', JSON.stringify(data.usuario));
 
-          // Redirigir según el rol del usuario (Cliente o Trabajador)
           if (data.usuario.rol === 'trabajador') {
             window.location.href = 'trabajador.html';
           } else {
