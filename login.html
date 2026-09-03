@@ -13,10 +13,8 @@
     input:focus { outline: none; border-color: #27ae60; box-shadow: 0 0 5px rgba(39, 174, 96, 0.2); }
     input.error-input { border-color: #e74c3c; background-color: #fff8f8; }
     
-    button.btn-login, button.btn-continuar { background-color: #1877f2; color: white; border: none; padding: 14px; margin-top: 20px; border-radius: 8px; cursor: pointer; font-size: 16px; width: 100%; font-weight: bold; box-shadow: 0 4px 10px rgba(24, 119, 242, 0.3); transition: background 0.2s; }
-    button.btn-login { background-color: #27ae60; box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3); }
-    button.btn-login:hover { background-color: #219150; }
-    button.btn-continuar:hover { background-color: #166fe5; }
+    button.btn-login, button.btn-continuar { background-color: #27ae60; color: white; border: none; padding: 14px; margin-top: 20px; border-radius: 8px; cursor: pointer; font-size: 16px; width: 100%; font-weight: bold; box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3); transition: background 0.2s; }
+    button.btn-login:hover, button.btn-continuar:hover { background-color: #219150; }
 
     .links-container { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; font-size: 14px; }
     .links-container a { color: #3498db; text-decoration: none; font-weight: 500; cursor: pointer; }
@@ -36,14 +34,14 @@
   <div class="card">
     <!-- VISTA 1: LOGIN -->
     <div id="vista-login">
-      <h1>✨ Tasklygo</h1>
+      <h1> Tasklygo</h1>
 
       <form id="formLogin">
         <input type="text" id="email" required placeholder="Correo electrónico o número de celular">
         <input type="password" id="password" required placeholder="Contraseña">
         
         <div id="mensajeError" class="error-message" style="display: none;">
-          <span>⚠️</span> La contraseña que ingresaste es incorrecta.
+          <span></span> La contraseña que ingresaste es incorrecta.
         </div>
 
         <button type="submit" class="btn-login">Ingresar</button>
@@ -122,7 +120,7 @@
       } catch (err) {
         console.error('Error de conexión:', err);
         passwordInput.classList.add('error-input');
-        errorBox.innerHTML = '<span>⚠️</span> No se pudo conectar con el servidor.';
+        errorBox.innerHTML = '<span></span> No se pudo conectar con el servidor.';
         errorBox.style.display = 'flex';
       }
     });
