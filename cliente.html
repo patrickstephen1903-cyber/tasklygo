@@ -3,321 +3,92 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tasklygo - Panel del Cliente</title>
+  <title>Tasklygo - Iniciar Sesión</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px; color: #333; }
-    .container { max-width: 1050px; margin: 0 auto; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8f9fa; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; color: #333; }
+    .card { background: white; width: 100%; max-width: 420px; padding: 35px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); box-sizing: border-box; text-align: center; }
+    h1 { color: #2c3e50; font-size: 24px; margin-bottom: 25px; display: flex; align-items: center; justify-content: center; gap: 8px; }
     
-    /* Encabezado */
-    .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
-    h1 { color: #2c3e50; font-size: 24px; margin: 0; }
-    .saludo { font-size: 14px; color: #27ae60; font-weight: bold; margin-top: 5px; display: block; }
-    .btn-logout { background-color: #e74c3c; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; transition: background 0.2s; }
-    .btn-logout:hover { background-color: #c0392b; }
-
-    /* Tarjeta del Formulario */
-    .card { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-top: 20px; margin-bottom: 25px; }
-    .card h2 { margin-top: 0; color: #2c3e50; font-size: 18px; margin-bottom: 15px; }
+    label { display: block; text-align: left; margin-top: 15px; font-weight: bold; font-size: 13px; color: #34495e; }
+    input { width: 100%; padding: 12px; margin-top: 6px; box-sizing: border-box; border: 1px solid #ccd1d1; border-radius: 8px; font-size: 15px; background-color: #fff; }
+    input:focus { outline: none; border-color: #27ae60; box-shadow: 0 0 5px rgba(39, 174, 96, 0.2); }
     
-    label { display: block; margin-top: 15px; font-weight: bold; font-size: 14px; color: #34495e; }
-    input, select { width: 100%; padding: 12px; margin-top: 6px; box-sizing: border-box; border: 1px solid #ccd1d1; border-radius: 8px; font-size: 15px; background-color: #fff; }
-    input:focus, select:focus { outline: none; border-color: #27ae60; box-shadow: 0 0 5px rgba(39, 174, 96, 0.2); }
-    
-    .payment-options { display: flex; gap: 10px; margin-top: 8px; }
-    .payment-card { flex: 1; border: 2px solid #ccd1d1; padding: 10px; text-align: center; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: bold; transition: all 0.2s; }
-    .payment-card input { display: none; }
-    .payment-card.selected { border-color: #27ae60; background-color: #e8f8f5; color: #27ae60; }
+    button.btn-login { background-color: #27ae60; color: white; border: none; padding: 14px; margin-top: 25px; border-radius: 8px; cursor: pointer; font-size: 16px; width: 100%; font-weight: bold; box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3); transition: background 0.2s; }
+    button.btn-login:hover { background-color: #219150; }
 
-    button.btn-solicitar { background-color: #27ae60; color: white; border: none; padding: 14px; margin-top: 25px; border-radius: 8px; cursor: pointer; font-size: 16px; width: 100%; font-weight: bold; box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3); }
-    button.btn-solicitar:hover { background-color: #219150; }
+    .links-container { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; font-size: 14px; }
+    .links-container a { color: #3498db; text-decoration: none; font-weight: 500; }
+    .links-container a:hover { text-decoration: underline; }
 
-    /* Estilos de la Tabla de Pedidos */
-    .table-responsive { overflow-x: auto; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); padding: 15px; }
-    table { width: 100%; border-collapse: collapse; text-align: center; font-size: 14px; }
-    th, td { padding: 12px 10px; border-bottom: 1px solid #eee; vertical-align: middle; }
-    th { background-color: #f8f9fa; color: #7f8c8d; font-weight: bold; font-size: 13px; text-transform: uppercase; }
-
-    /* Badges de Estado */
-    .badge { padding: 5px 12px; border-radius: 12px; font-weight: bold; font-size: 12px; display: inline-block; margin-bottom: 5px; }
-    .badge-pendiente { background-color: #f1c40f; color: #fff; }
-    .badge-en-camino { background-color: #3498db; color: #fff; }
-    .badge-finalizado { background-color: #2ecc71; color: #fff; }
-    .badge-cancelado { background-color: #e74c3c; color: #fff; }
-
-    /* Botones de la tabla */
-    .btn-tbl { border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; margin: 2px 0; display: block; width: 100%; }
-    .btn-estado-camino { background-color: #3498db; color: white; }
-    .btn-estado-finalizar { background-color: #2ecc71; color: white; }
-    .btn-estado-cancelar { background-color: #e74c3c; color: white; }
-    .btn-editar { background-color: #f1c40f; color: #2c3e50; }
-    .btn-borrar { background-color: #34495e; color: white; }
-    .btn-tbl:hover { opacity: 0.9; }
+    .error-box { display: none; background: #f8d7da; color: #721c24; padding: 12px; border-radius: 8px; text-align: center; margin-top: 15px; font-size: 13px; font-weight: bold; border: 1px solid #f5c6cb; }
   </style>
 </head>
 <body>
 
-  <div class="container">
-    <div class="header-bar">
-      <div>
-        <h1>✨ Tasklygo</h1>
-        <span id="nombre-usuario" class="saludo"></span>
-      </div>
-      <button onclick="cerrarSesion()" class="btn-logout">🚪 Cerrar Sesión</button>
+  <div class="card">
+    <h1>✨ Tasklygo</h1>
+
+    <form id="formLogin">
+      <label>Correo Electrónico:</label>
+      <input type="email" id="email" required placeholder="correo@ejemplo.com">
+
+      <label>Contraseña:</label>
+      <input type="password" id="password" required placeholder="••••••••••••">
+
+      <button type="submit" class="btn-login">Ingresar</button>
+    </form>
+
+    <div id="mensajeError" class="error-box">
+      Ocurrió un error. Intenta de nuevo.
     </div>
 
-    <!-- Formulario para solicitar servicio -->
-    <div class="card">
-      <h2>📋 Solicitar Nuevo Servicio de Limpieza</h2>
-      <p style="color: #7f8c8d; font-size: 13px; margin-top: -10px;">Limpieza profesional a domicilio en Lima</p>
-      
-      <form id="formCliente">
-        <label>Tu Nombre y Apellido:</label>
-        <input type="text" id="cliente" required placeholder="Ej. Andrea Silva">
-
-        <label>¿Qué área deseas limpiar?</label>
-        <select id="servicio" required>
-          <option value="">Selecciona una opción</option>
-          <option value="Limpieza profunda de Sala">Limpieza profunda de Sala (S/ 70)</option>
-          <option value="Limpieza de Cocina y Menaje">Limpieza de Cocina (S/ 80)</option>
-          <option value="Limpieza de Dormitorio Principal">Limpieza de Dormitorio (S/ 60)</option>
-          <option value="Limpieza General de Casa/Depto">Limpieza General Completa (S/ 150)</option>
-        </select>
-
-        <label>Tu Distrito:</label>
-        <select id="distrito" required>
-          <option value="">Selecciona tu distrito</option>
-          <option value="Miraflores">Miraflores</option>
-          <option value="San Isidro">San Isidro</option>
-          <option value="Surco">Santiago de Surco</option>
-          <option value="San Borja">San Borja</option>
-          <option value="SMP">San Martín de Porres</option>
-          <option value="Lince">Lince</option>
-        </select>
-
-        <label>Precio Estimado (S/):</label>
-        <input type="number" step="0.01" id="precio" required placeholder="Ej. 70.00">
-
-        <label>Método de Pago:</label>
-        <div class="payment-options">
-          <label class="payment-card selected">
-            <input type="radio" name="pago" value="Yape/Plin" checked> 📱 Yape / Plin
-          </label>
-          <label class="payment-card">
-            <input type="radio" name="pago" value="Tarjeta"> 💳 Tarjeta
-          </label>
-          <label class="payment-card">
-            <input type="radio" name="pago" value="Efectivo"> 💵 Efectivo
-          </label>
-        </div>
-
-        <button type="submit" class="btn-solicitar">Pedir Limpieza Ahora</button>
-      </form>
-    </div>
-
-    <!-- Tabla de Mis Servicios / Pedidos -->
-    <div class="table-responsive">
-      <h2 style="color: #2c3e50; font-size: 18px; margin-top: 0; margin-bottom: 15px;">📦 Mis Servicios Solicitados</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Cliente</th>
-            <th>Servicio</th>
-            <th>Distrito</th>
-            <th>Precio</th>
-            <th>Fecha</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody id="tablaPedidos">
-          <!-- Carga dinámica -->
-        </tbody>
-      </table>
+    <div class="links-container">
+      <a href="#" onclick="alert('Para recuperar tu contraseña, contacta al administrador o revisa tu base de datos.'); return false;">¿Olvidaste tu contraseña?</a>
+      <a href="registro.html">¿No tienes cuenta? Regístrate aquí</a>
     </div>
   </div>
 
   <script>
-    // 🔒 0. Auth Guard (Protección de Ruta)
-    const token = localStorage.getItem('token');
-    if (!token) {
-      window.location.href = 'login.html';
-    }
+    const API_URL = 'https://tasklygo-backend.onrender.com'; // O tu ruta local si usas localhost:3000
 
-    // 👤 0.1 Mostrar Saludo Personalizado y Autocompletar Cliente
-    const usuario = JSON.parse(localStorage.getItem('usuario'));
-    if (usuario && usuario.nombre) {
-      document.getElementById('nombre-usuario').innerText = `👋 Hola, ${usuario.nombre}`;
-      document.getElementById('cliente').value = usuario.nombre;
-    }
-
-    // 🚪 0.2 Función de Cerrar Sesión
-    function cerrarSesion() {
-      localStorage.removeItem('token');
-      localStorage.removeItem('usuario');
-      window.location.href = 'login.html';
-    }
-
-    const API_URL = 'https://tasklygo-backend.onrender.com/pedidos';
-
-    // Selección visual del método de pago
-    const cards = document.querySelectorAll('.payment-card');
-    cards.forEach(card => {
-      card.addEventListener('click', () => {
-        cards.forEach(c => c.classList.remove('selected'));
-        card.classList.add('selected');
-        card.querySelector('input').checked = true;
-      });
-    });
-
-    // 🔄 Cargar Lista de Pedidos (Filtrados solo para el usuario actual)
-    async function cargarPedidos() {
-      try {
-        const res = await fetch(API_URL);
-        const data = await res.json();
-
-        const tbody = document.getElementById('tablaPedidos');
-        tbody.innerHTML = '';
-
-        // Filtramos para mostrar únicamente los pedidos del cliente logueado
-        const usuarioActual = JSON.parse(localStorage.getItem('usuario'));
-        const nombreUsuario = usuarioActual ? usuarioActual.nombre.toLowerCase() : '';
-        
-        const misPedidos = data.filter(p => p.cliente && p.cliente.toLowerCase() === nombreUsuario);
-
-        if (misPedidos.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="8" style="color: #95a5a6; padding: 20px;">No tienes servicios registrados todavía.</td></tr>';
-          return;
-        }
-
-        misPedidos.forEach(p => {
-          const estado = p.estado || 'Pendiente';
-          const fechaObj = p.fecha ? new Date(p.fecha) : null;
-          const fechaStr = fechaObj ? fechaObj.toLocaleString('es-PE') : '-';
-          const claseBadge = estado.toLowerCase().replace(/\s+/g, '-');
-
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td><strong>${p.id}</strong></td>
-            <td>${p.cliente}</td>
-            <td>${p.servicio}</td>
-            <td>${p.distrito}</td>
-            <td>S/ ${parseFloat(p.precio || 0).toFixed(2)}</td>
-            <td>${fechaStr}</td>
-            <td>
-              <span class="badge badge-${claseBadge}">${estado}</span><br>
-              <button class="btn-tbl btn-estado-camino" onclick="cambiarEstado(${p.id}, 'En Camino')">🔵 En Camino</button>
-              <button class="btn-tbl btn-estado-finalizar" onclick="cambiarEstado(${p.id}, 'Finalizado')">🟢 Finalizar</button>
-              <button class="btn-tbl btn-estado-cancelar" onclick="cambiarEstado(${p.id}, 'Cancelado')">🔴 Cancelar</button>
-            </td>
-            <td>
-              <button class="btn-tbl btn-editar" onclick="editarDetalles(${p.id}, '${p.cliente}', '${p.servicio}', '${p.distrito}', ${p.precio})">Editar Detalles</button>
-              <button class="btn-tbl btn-borrar" onclick="borrarRegistro(${p.id})">Borrar Registro</button>
-            </td>
-          `;
-          tbody.appendChild(tr);
-        });
-
-      } catch (err) {
-        console.error('Error al cargar pedidos:', err);
-      }
-    }
-
-    // ➕ Registrar Nuevo Pedido desde el Formulario
-    document.getElementById('formCliente').addEventListener('submit', async (e) => {
+    document.getElementById('formLogin').addEventListener('submit', async (e) => {
       e.preventDefault();
-
-      const nuevoPedido = {
-        cliente: document.getElementById('cliente').value,
-        servicio: document.getElementById('servicio').value,
-        distrito: document.getElementById('distrito').value,
-        precio: parseFloat(document.getElementById('precio').value)
-      };
+      
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const errorBox = document.getElementById('mensajeError');
+      errorBox.style.display = 'none';
 
       try {
-        const res = await fetch(API_URL, {
+        const res = await fetch(`${API_URL}/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(nuevoPedido)
+          body: JSON.stringify({ email, password })
         });
 
+        const data = await res.json();
+
         if (res.ok) {
-          document.getElementById('servicio').value = '';
-          document.getElementById('distrito').value = '';
-          document.getElementById('precio').value = '';
-          cargarPedidos();
-          alert('🎉 ¡Servicio solicitado con éxito!');
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('usuario', JSON.stringify(data.usuario));
+
+          // Redirigir según el rol del usuario (Cliente o Trabajador)
+          if (data.usuario.rol === 'trabajador') {
+            window.location.href = 'trabajador.html';
+          } else {
+            window.location.href = 'index.html';
+          }
         } else {
-          alert('Hubo un error al procesar tu solicitud.');
+          errorBox.innerText = data.mensaje || 'Credenciales incorrectas.';
+          errorBox.style.display = 'block';
         }
       } catch (err) {
         console.error('Error de conexión:', err);
-        alert('No se pudo conectar con el servidor.');
+        errorBox.innerText = 'No se pudo conectar con el servidor.';
+        errorBox.style.display = 'block';
       }
     });
-
-    // ✏️ Editar Detalles de un Pedido
-    async function editarDetalles(id, clienteActual, servicioActual, distritoActual, precioActual) {
-      const nuevoCliente = prompt('Cliente:', clienteActual);
-      if (nuevoCliente === null) return;
-
-      const nuevoServicio = prompt('Servicio:', servicioActual);
-      if (nuevoServicio === null) return;
-
-      const nuevoDistrito = prompt('Distrito:', distritoActual);
-      if (nuevoDistrito === null) return;
-
-      const nuevoPrecio = prompt('Precio (S/):', precioActual);
-      if (nuevoPrecio === null) return;
-
-      try {
-        await fetch(`${API_URL}/${id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            cliente: nuevoCliente,
-            servicio: nuevoServicio,
-            distrito: nuevoDistrito,
-            precio: parseFloat(nuevoPrecio)
-          })
-        });
-        cargarPedidos();
-      } catch (err) {
-        console.error('Error al editar detalles:', err);
-      }
-    }
-
-    // 🔄 Cambiar Estado del Pedido
-    async function cambiarEstado(id, nuevoEstado) {
-      try {
-        await fetch(`${API_URL}/${id}/estado`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ estado: nuevoEstado })
-        });
-        cargarPedidos();
-      } catch (err) {
-        console.error('Error al cambiar estado:', err);
-      }
-    }
-
-    // 🗑️ Borrar Registro
-    async function borrarRegistro(id) {
-      if (!confirm('¿Seguro que deseas eliminar este pedido?')) return;
-
-      try {
-        await fetch(`${API_URL}/${id}`, {
-          method: 'DELETE'
-        });
-        cargarPedidos();
-      } catch (err) {
-        console.error('Error al borrar registro:', err);
-      }
-    }
-
-    // Carga inicial y auto-actualización cada 5 segundos
-    cargarPedidos();
-    setInterval(cargarPedidos, 5000);
   </script>
+
 </body>
 </html>
