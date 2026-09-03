@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tasklygo - Registro</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #333; box-sizing: border-box; }
+    .card { background: white; width: 100%; max-width: 480px; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); box-sizing: border-box; }
+    
+    h2 { color: #1c1e21; font-size: 24px; margin-bottom: 5px; margin-top: 0; font-weight: bold; }
+    .subtitle { color: #606770; font-size: 14px; margin-bottom: 20px; line-height: 1.4; }
+
+    .label-title { font-size: 13px; color: #606770; margin-bottom: 6px; font-weight: 500; display: block; }
+    
+    .name-row { display: flex; gap: 10px; margin-bottom: 15px; }
+    .name-row input { flex: 1; margin-top: 0; }
+
+    input, select { width: 100%; padding: 12px; margin-top: 4px; margin-bottom: 15px; box-sizing: border-box; border: 1px solid #ccd1d1; border-radius: 8px; font-size: 15px; background-color: #fff; transition: border-color 0.2s; }
+    input:focus, select:focus { outline: none; border-color: #27ae60; box-shadow: 0 0 5px rgba(39, 174, 96, 0.2); }
+    
+    .date-row { display: flex; gap: 10px; margin-bottom: 15px; }
+    .date-row select { flex: 1; margin-top: 0; margin-bottom: 0; }
+
+    .helper-text { font-size: 11px; color: #777; margin-top: -10px; margin-bottom: 15px; line-height: 1.3; }
+    .helper-text a { color: #3498db; text-decoration: none; }
+    .helper-text a:hover { text-decoration: underline; }
+
+    button.btn-submit { background-color: #27ae60; color: white; border: none; padding: 14px; margin-top: 10px; border-radius: 8px; cursor: pointer; font-size: 16px; width: 100%; font-weight: bold; box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3); transition: background 0.2s; }
+    button.btn-submit:hover { background-color: #219150; }
+
+    .footer-link { text-align: center; margin-top: 20px; font-size: 14px; }
+    .footer-link a { color: #3498db; text-decoration: none; font-weight: 500; }
+    .footer-link a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>Crea una cuenta en Tasklygo</h2>
+    <p class="subtitle">Es rápido y fácil.</p>
+
+    <form id="formRegistro">
+      <span class="label-title">Nombre y apellido</span>
+      <div class="name-row">
+        <input type="text" id="nombre" required placeholder="Nombre">
+        <input type="text" id="apellido" required placeholder="Apellido">
+      </div>
+
+      <span class="label-title">Fecha de nacimiento</span>
+      <div class="date-row">
+        <select id="dia" required>
+          <option value="" disabled selected>Día</option>
+          <script>
+            for(let i=1; i<=31; i++) document.write(`<option value="${i}">${i}</option>`);
+          </script>
+        </select>
+        <select id="mes" required>
+          <option value="" disabled selected>Mes</option>
+          <option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option>
+          <option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option>
+          <option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option>
+          <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+        </select>
+        <select id="anio" required>
+          <option value="" disabled selected>Año</option>
+          <script>
+            for(let i=2026; i>=1940; i--) document.write(`<option value="${i}">${i}</option>`);
+          </script>
+        </select>
+      </div>
+
+      <span class="label-title">Género</span>
+      <select id="genero" required>
+        <option value="" disabled selected>Selecciona tu género</option>
+        <option value="mujer">Mujer</option>
+        <option value="hombre">Hombre</option>
+        <option value="personalizado">Personalizado</option>
+      </select>
+
+      <span class="label-title">Número de celular o correo electrónico</span>
+      <input type="text" id="contacto" required placeholder="Número de celular o correo electrónico">
+      
+      <div class="helper-text">
+        Es posible que te enviemos notificaciones por SMS o correo. <a href="#">Saber más</a>
+      </div>
+
+      <span class="label-title">Contraseña</span>
+      <input type="password" id="password" required placeholder="Nueva contraseña">
+
+      <button type="submit" class="btn-submit">Registrarse</button>
+    </form>
+
+    <div class="footer-link">
+      <a href="login.html">Ya tengo una cuenta</a>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'https://tasklygo-backend.onrender.com';
+
+    document.getElementById('formRegistro').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const nombre = document.getElementById('nombre').value;
+      const apellido = document.getElementById('apellido').value;
+      const contacto = document.getElementById('contacto').value;
+      const password = document.getElementById('password').value;
+
+      try {
+        const res = await fetch(`${API_URL}/registro`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nombre, apellido, contacto, password })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          alert('¡Cuenta creada con éxito!');
+          window.location.href = 'login.html';
+        } else {
+          alert(data.mensaje || 'Error al registrarse.');
+        }
+      } catch (err) {
+        console.error('Error:', err);
+        alert('No se pudo conectar con el servidor.');
+      }
+    });
+  </script>
+
+</body>
+</html>
