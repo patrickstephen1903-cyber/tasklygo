@@ -13,39 +13,78 @@
     input:focus { outline: none; border-color: #27ae60; box-shadow: 0 0 5px rgba(39, 174, 96, 0.2); }
     input.error-input { border-color: #e74c3c; background-color: #fff8f8; }
     
-    button.btn-login { background-color: #27ae60; color: white; border: none; padding: 14px; margin-top: 20px; border-radius: 8px; cursor: pointer; font-size: 16px; width: 100%; font-weight: bold; box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3); transition: background 0.2s; }
+    button.btn-login, button.btn-continuar { background-color: #1877f2; color: white; border: none; padding: 14px; margin-top: 20px; border-radius: 8px; cursor: pointer; font-size: 16px; width: 100%; font-weight: bold; box-shadow: 0 4px 10px rgba(24, 119, 242, 0.3); transition: background 0.2s; }
+    button.btn-login { background-color: #27ae60; box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3); }
     button.btn-login:hover { background-color: #219150; }
+    button.btn-continuar:hover { background-color: #166fe5; }
 
     .links-container { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; font-size: 14px; }
-    .links-container a { color: #3498db; text-decoration: none; font-weight: 500; }
+    .links-container a { color: #3498db; text-decoration: none; font-weight: 500; cursor: pointer; }
     .links-container a:hover { text-decoration: underline; }
 
     .error-message { display: none; text-align: left; color: #e74c3c; font-size: 13px; margin-top: 6px; font-weight: 500; display: flex; align-items: center; gap: 4px; }
+
+    /* Estilos para la vista de recuperación */
+    .recovery-header { display: flex; align-items: center; gap: 15px; margin-bottom: 8px; text-align: left; }
+    .btn-back { background: none; border: none; font-size: 28px; cursor: pointer; color: #606770; padding: 0; line-height: 1; }
+    .recovery-header h2 { font-size: 22px; color: #1c1e21; margin: 0; font-weight: bold; }
+    .recovery-desc { text-align: left; font-size: 14px; color: #606770; margin-bottom: 15px; margin-top: 0; }
   </style>
 </head>
 <body>
 
   <div class="card">
-    <h1> Tasklygo</h1>
+    <!-- VISTA 1: LOGIN -->
+    <div id="vista-login">
+      <h1>✨ Tasklygo</h1>
 
-    <form id="formLogin">
-      <input type="text" id="email" required placeholder="Correo electrónico o número de celular">
-      <input type="password" id="password" required placeholder="Contraseña">
-      
-      <div id="mensajeError" class="error-message" style="display: none;">
-        <span>⚠️</span> La contraseña que ingresaste es incorrecta.
+      <form id="formLogin">
+        <input type="text" id="email" required placeholder="Correo electrónico o número de celular">
+        <input type="password" id="password" required placeholder="Contraseña">
+        
+        <div id="mensajeError" class="error-message" style="display: none;">
+          <span>⚠️</span> La contraseña que ingresaste es incorrecta.
+        </div>
+
+        <button type="submit" class="btn-login">Ingresar</button>
+      </form>
+
+      <div class="links-container">
+        <a onclick="mostrarRecuperacion()">¿Olvidaste tu contraseña?</a>
+        <a href="registro.html">¿No tienes cuenta? Regístrate aquí</a>
       </div>
+    </div>
 
-      <button type="submit" class="btn-login">Ingresar</button>
-    </form>
+    <!-- VISTA 2: RECUPERAR CONTRASEÑA -->
+    <div id="vista-recuperar" style="display: none;">
+      <div class="recovery-header">
+        <button class="btn-back" onclick="mostrarLogin()">‹</button>
+        <h2>Encuentra tu cuenta</h2>
+      </div>
+      <p class="recovery-desc">Ingresa tu número de celular o correo electrónico.</p>
 
-    <div class="links-container">
-      <a href="registro.html">¿No tienes cuenta? Regístrate aquí</a>
+      <input type="text" id="recovery-input" placeholder="Número de celular o correo electrónico">
+      
+      <button type="button" class="btn-continuar" onclick="alert('Se han enviado las instrucciones a tu correo o número registrado.'); mostrarLogin();">Continuar</button>
+      
+      <div class="links-container" style="margin-top: 25px;">
+        <a href="registro.html">¿No tienes cuenta? Regístrate aquí</a>
+      </div>
     </div>
   </div>
 
   <script>
     const API_URL = 'https://tasklygo-backend.onrender.com';
+
+    function mostrarRecuperacion() {
+      document.getElementById('vista-login').style.display = 'none';
+      document.getElementById('vista-recuperar').style.display = 'block';
+    }
+
+    function mostrarLogin() {
+      document.getElementById('vista-recuperar').style.display = 'none';
+      document.getElementById('vista-login').style.display = 'block';
+    }
 
     document.getElementById('formLogin').addEventListener('submit', async (e) => {
       e.preventDefault();
