@@ -116,11 +116,11 @@
 
         const data = await res.json();
 
-        if (res.ok) {
+     if (res.ok) {
           alert('¡Cuenta creada con éxito!');
           window.location.href = 'login.html';
         } else {
-          alert(data.mensaje || 'Error al registrarse.');
+          alert(data.error || data.mensaje || 'Error al registrarse.');
         }
       } catch (err) {
         console.error('Error:', err);

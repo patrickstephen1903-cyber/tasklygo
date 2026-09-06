@@ -162,7 +162,7 @@ fastify.put('/pedidos/:id/estado', async (request, reply) => {
   }
 });
 
-// Iniciar servidor
+// Iniciar servidor y crear tablas automáticamente
 const start = async () => {
   try {
     await pool.query(`
