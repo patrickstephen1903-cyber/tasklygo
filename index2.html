@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tasklygo - Panel de Cliente</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f4f6f8; margin: 0; padding: 0; color: #333; }
+    header { background-color: #ffffff; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+    .logo { font-size: 20px; font-weight: bold; color: #2c3e50; display: flex; align-items: center; gap: 8px; }
+    .user-info { display: flex; align-items: center; gap: 15px; }
+    .btn-logout { background-color: #e74c3c; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; }
+    .btn-logout:hover { background-color: #c0392b; }
+
+    .container { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
+    .welcome-banner { background: linear-gradient(135deg, #27ae60, #2ecc71); color: white; padding: 30px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(39, 174, 96, 0.2); }
+    .welcome-banner h1 { margin: 0 0 10px 0; font-size: 26px; }
+    .welcome-banner p { margin: 0; font-size: 15px; opacity: 0.9; }
+
+    .search-section { margin-bottom: 30px; }
+    .search-bar { width: 100%; padding: 14px 20px; box-sizing: border-box; border: 1px solid #ccd1d1; border-radius: 8px; font-size: 16px; background-color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.03); outline: none; transition: border-color 0.2s; }
+    .search-bar:focus { border-color: #27ae60; }
+
+    h2 { font-size: 20px; color: #2c3e50; margin-bottom: 15px; }
+    .services-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    .service-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.2s; }
+    .service-card:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0,0,0,0.08); }
+    .service-title { font-size: 18px; font-weight: bold; color: #2c3e50; margin-bottom: 8px; }
+    .service-desc { font-size: 14px; color: #606770; margin-bottom: 15px; line-height: 1.4; }
+    .service-footer { display: flex; justify-content: space-between; align-items: center; }
+    .service-price { font-weight: bold; color: #27ae60; font-size: 16px; }
+    .btn-solicitar { background-color: #1877f2; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: background 0.2s; }
+    .btn-solicitar:hover { background-color: #166fe5; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">✨ Tasklygo</div>
+    <div class="user-info">
+      <span id="nombreUsuario">Cargando...</span>
+      <button class="btn-logout" onclick="cerrarSesion()">Cerrar sesión</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="welcome-banner">
+      <h1 id="tituloBienvenida">¡Hola de nuevo!</h1>
+      <p>¿Qué servicio del hogar necesitas cotizar o solicitar hoy?</p>
+    </div>
+
+    <div class="search-section">
+      <input type="text" id="buscador" class="search-bar" placeholder="🔍 Buscar servicio (ej. Limpieza, Gasfitería, Electricidad)..." onkeyup="filtrarServicios()">
+    </div>
+
+    <h2>Servicios Disponibles</h2>
+    <div class="services-grid" id="gridServicios">
+      <!-- Tarjeta 1 -->
+      <div class="service-card" data-nombre="limpieza del hogar">
+        <div>
+          <div class="service-title">🧹 Limpieza del Hogar</div>
+          <div class="service-desc">Limpieza profunda y general de ambientes, salas, cocinas y baños por horas.</div>
+        </div>
+        <div class="service-footer">
+          <span class="service-price">S/ 40 / hora</span>
+          <button class="btn-solicitar" onclick="solicitarServicio('Limpieza del Hogar')">Solicitar</button>
+        </div>
+      </div>
+
+      <!-- Tarjeta 2 -->
+      <div class="service-card" data-nombre="gasfiteria fontaneria">
+        <div>
+          <div class="service-title">🔧 Gasfitería y Plomería</div>
+          <div class="service-desc">Reparación de fugas, instalación de grifería, desatoro de tuberías y mantenimiento.</div>
+        </div>
+        <div class="service-footer">
+          <span class="service-price">S/ 50 visita</span>
+          <button class="btn-solicitar" onclick="solicitarServicio('Gasfitería y Plomería')">Solicitar</button>
+        </div>
+      </div>
+
+      <!-- Tarjeta 3 -->
+      <div class="service-card" data-nombre="electricidad electricista">
+        <div>
+          <div class="service-title">⚡ Instalaciones Eléctricas</div>
+          <div class="service-desc">Revisión de cortocircuitos, instalación de luminarias, tomacorrientes y tableros.</div>
+        </div>
+        <div class="service-footer">
+          <span class="service-price">S/ 60 visita</span>
+          <button class="btn-solicitar" onclick="solicitarServicio('Instalaciones Eléctricas')">Solicitar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Validar autenticación al cargar la página
+    const token = localStorage.getItem('token');
+    const usuarioString = localStorage.getItem('usuario');
+
+    if (!token || !usuarioString) {
+      window.location.href = 'login.html';
+    }
+
+    const usuario = JSON.parse(usuarioString);
+    document.getElementById('nombreUsuario').textContent = `${usuario.nombre} ${usuario.apellido}`;
+    document.getElementById('tituloBienvenida').textContent = `¡Hola, ${usuario.nombre}!`;
+
+    function cerrarSesion() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('usuario');
+      window.location.href = 'login.html';
+    }
+
+    function filtrarServicios() {
+      const texto = document.getElementById('buscador').value.toLowerCase();
+      const tarjetas = document.querySelectorAll('.service-card');
+
+      tarjetas.forEach(tarjeta => {
+        const nombre = tarjeta.getAttribute('data-nombre');
+        if (nombre.includes(texto)) {
+          tarjeta.style.display = 'flex';
+        } else {
+          tarjeta.style.display = 'none';
+        }
+      });
+    }
+
+    function solicitarServicio(nombreServicio) {
+      alert(`¡Solicitud enviada para "${nombreServicio}"! Un profesional cercano se pondrá en contacto contigo en breve.`);
+    }
+  </script>
+
+</body>
+</html>

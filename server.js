@@ -35,11 +35,9 @@ fastify.get('/', async (request, reply) => {
 fastify.post('/registro', async (request, reply) => {
   const { nombre, email, password, rol } = request.body;
   try {
-    // Encriptar la contraseña
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Guardar en la base de datos (por defecto rol 'cliente')
     const result = await pool.query(
       'INSERT INTO usuarios (nombre, email, password, rol) VALUES ($1, $2, $3, $4) RETURNING id, nombre, email, rol',
       [nombre, email, hashedPassword, rol || 'cliente']
@@ -48,7 +46,6 @@ fastify.post('/registro', async (request, reply) => {
     return { mensaje: 'Usuario registrado con éxito', usuario: result.rows[0] };
   } catch (error) {
     console.error('Error en registro:', error);
-    // Código 23505 en Postgres es violación de clave única (email duplicado)
     if (error.code === '23505') {
       return reply.status(400).send({ error: 'El correo electrónico ya está registrado' });
     }
@@ -60,7 +57,6 @@ fastify.post('/registro', async (request, reply) => {
 fastify.post('/login', async (request, reply) => {
   const { email, password } = request.body;
   try {
-    // Buscar usuario por correo
     const result = await pool.query('SELECT * FROM usuarios WHERE email = $1', [email]);
     if (result.rows.length === 0) {
       return reply.status(400).send({ error: 'Correo o contraseña incorrectos' });
@@ -68,13 +64,11 @@ fastify.post('/login', async (request, reply) => {
 
     const usuario = result.rows[0];
 
-    // Comparar la contraseña ingresada con la encriptada
     const esValida = await bcrypt.compare(password, usuario.password);
     if (!esValida) {
       return reply.status(400).send({ error: 'Correo o contraseña incorrectos' });
     }
 
-    // Generar un Token JWT válido por 8 horas
     const token = jwt.sign(
       { id: usuario.id, nombre: usuario.nombre, rol: usuario.rol },
       process.env.JWT_SECRET || 'clave_secreta_tasklygo',
@@ -169,7 +163,6 @@ fastify.put('/pedidos/:id/estado', async (request, reply) => {
 // Iniciar servidor
 const start = async () => {
   try {
-    // Auto-crear la tabla 'pedidos' si no existe
     await pool.query(`
       CREATE TABLE IF NOT EXISTS pedidos (
         id SERIAL PRIMARY KEY,
@@ -183,7 +176,6 @@ const start = async () => {
       );
     `);
 
-    // Auto-crear la tabla 'usuarios' si no existe
     await pool.query(`
       CREATE TABLE IF NOT EXISTS usuarios (
         id SERIAL PRIMARY KEY,
