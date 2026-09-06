@@ -33,21 +33,21 @@ fastify.get('/', async (request, reply) => {
 
 // 1. REGISTRO DE USUARIOS
 fastify.post('/registro', async (request, reply) => {
-  const { nombre, email, password, rol } = request.body;
+  const { nombre, apellido, contacto, password, rol } = request.body;
   try {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
     const result = await pool.query(
-      'INSERT INTO usuarios (nombre, email, password, rol) VALUES ($1, $2, $3, $4) RETURNING id, nombre, email, rol',
-      [nombre, email, hashedPassword, rol || 'cliente']
+      'INSERT INTO usuarios (nombre, apellido, contacto, password, rol) VALUES ($1, $2, $3, $4, $5) RETURNING id, nombre, apellido, contacto, rol',
+      [nombre, apellido, contacto, hashedPassword, rol || 'cliente']
     );
 
     return { mensaje: 'Usuario registrado con éxito', usuario: result.rows[0] };
   } catch (error) {
     console.error('Error en registro:', error);
     if (error.code === '23505') {
-      return reply.status(400).send({ error: 'El correo electrónico ya está registrado' });
+      return reply.status(400).send({ error: 'El correo o número de celular ya está registrado' });
     }
     reply.status(500).send({ error: 'Error al registrar el usuario' });
   }
@@ -55,22 +55,24 @@ fastify.post('/registro', async (request, reply) => {
 
 // 2. INICIO DE SESIÓN (LOGIN)
 fastify.post('/login', async (request, reply) => {
-  const { email, password } = request.body;
+  const { email, contacto, password } = request.body;
+  const identifier = email || contacto;
+
   try {
-    const result = await pool.query('SELECT * FROM usuarios WHERE email = $1', [email]);
+    const result = await pool.query('SELECT * FROM usuarios WHERE contacto = $1', [identifier]);
     if (result.rows.length === 0) {
-      return reply.status(400).send({ error: 'Correo o contraseña incorrectos' });
+      return reply.status(400).send({ error: 'Correo/Celular o contraseña incorrectos' });
     }
 
     const usuario = result.rows[0];
 
     const esValida = await bcrypt.compare(password, usuario.password);
     if (!esValida) {
-      return reply.status(400).send({ error: 'Correo o contraseña incorrectos' });
+      return reply.status(400).send({ error: 'Correo/Celular o contraseña incorrectos' });
     }
 
     const token = jwt.sign(
-      { id: usuario.id, nombre: usuario.nombre, rol: usuario.rol },
+      { id: usuario.id, nombre: usuario.nombre, contacto: usuario.contacto, rol: usuario.rol },
       process.env.JWT_SECRET || 'clave_secreta_tasklygo',
       { expiresIn: '8h' }
     );
@@ -78,7 +80,7 @@ fastify.post('/login', async (request, reply) => {
     return {
       mensaje: 'Inicio de sesión exitoso',
       token,
-      usuario: { id: usuario.id, nombre: usuario.nombre, email: usuario.email, rol: usuario.rol }
+      usuario: { id: usuario.id, nombre: usuario.nombre, apellido: usuario.apellido, contacto: usuario.contacto, rol: usuario.rol }
     };
   } catch (error) {
     console.error('Error en login:', error);
@@ -180,9 +182,10 @@ const start = async () => {
       CREATE TABLE IF NOT EXISTS usuarios (
         id SERIAL PRIMARY KEY,
         nombre VARCHAR(100) NOT NULL,
-        email VARCHAR(150) UNIQUE NOT NULL,
+        apellido VARCHAR(100) NOT NULL,
+        contacto VARCHAR(150) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
-        rol VARCHAR(20) DEFAULT 'cliente',
+        rol VARCHAR(50) DEFAULT 'cliente',
         creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
