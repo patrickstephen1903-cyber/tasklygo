@@ -16,10 +16,12 @@ await fastify.register(cors, {
   allowedHeaders: ['Content-Type', 'Authorization']
 });
 
-// Conexión a PostgreSQL con SSL
+// Conexión a PostgreSQL con SSL y Timeout de seguridad
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
+  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false,
+  connectionTimeoutMillis: 5000, // No espera más de 5 segundos si falla
+  idleTimeoutMillis: 30000
 });
 
 // Ruta principal
@@ -32,6 +34,10 @@ fastify.get('/', async (request, reply) => {
 // ==========================================
 
 // 1. REGISTRO DE USUARIOS
+// Responder de inmediato las peticiones Preflight CORS
+fastify.options('*', async (request, reply) => {
+  return reply.code(200).send();
+});
 fastify.post('/registro', async (request, reply) => {
   const { nombre, apellido, contacto, password, rol } = request.body;
   try {
