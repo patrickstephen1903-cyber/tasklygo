@@ -20,7 +20,7 @@ await fastify.register(cors, {
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false,
-  connectionTimeoutMillis: 5000, // No espera más de 5 segundos si falla
+  connectionTimeoutMillis: 5000, // No espera más de 5 segundos si falla la conexión
   idleTimeoutMillis: 30000
 });
 
@@ -34,10 +34,6 @@ fastify.get('/', async (request, reply) => {
 // ==========================================
 
 // 1. REGISTRO DE USUARIOS
-// Responder de inmediato las peticiones Preflight CORS
-fastify.options('*', async (request, reply) => {
-  return reply.code(200).send();
-});
 fastify.post('/registro', async (request, reply) => {
   const { nombre, apellido, contacto, password, rol } = request.body;
   try {
@@ -45,7 +41,7 @@ fastify.post('/registro', async (request, reply) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     const result = await pool.query(
-      'INSERT INTO usuarios (nombre, apellido, contacto, password, rol) VALUES ($1, $2, $3, $4, $5) RETURNING id, nombre, apellido, contacto, rol',
+      'INSERT INTO usuarios (nombre, apellido, contacto, password, rol) VALUES (\$1, \$2, \$3, \$4, \$5) RETURNING id, nombre, apellido, contacto, rol',
       [nombre, apellido, contacto, hashedPassword, rol || 'cliente']
     );
 
@@ -65,7 +61,7 @@ fastify.post('/login', async (request, reply) => {
   const identifier = email || contacto;
 
   try {
-    const result = await pool.query('SELECT * FROM usuarios WHERE contacto = $1', [identifier]);
+    const result = await pool.query('SELECT * FROM usuarios WHERE contacto = \$1', [identifier]);
     if (result.rows.length === 0) {
       return reply.status(400).send({ error: 'Correo/Celular o contraseña incorrectos' });
     }
@@ -114,7 +110,7 @@ fastify.post('/pedidos', async (request, reply) => {
   const { cliente, servicio, distrito, precio } = request.body;
   try {
     const result = await pool.query(
-      'INSERT INTO pedidos (cliente, servicio, distrito, precio) VALUES ($1, $2, $3, $4) RETURNING *',
+      'INSERT INTO pedidos (cliente, servicio, distrito, precio) VALUES (\$1, \$2, \$3, \$4) RETURNING *',
       [cliente, servicio, distrito, precio]
     );
     return result.rows[0];
@@ -128,7 +124,7 @@ fastify.post('/pedidos', async (request, reply) => {
 fastify.delete('/pedidos/:id', async (request, reply) => {
   const { id } = request.params;
   try {
-    await pool.query('DELETE FROM pedidos WHERE id = $1', [id]);
+    await pool.query('DELETE FROM pedidos WHERE id = \$1', [id]);
     return { mensaje: 'Pedido eliminado correctamente' };
   } catch (error) {
     console.error('ERROR EXACTO:', error);
@@ -142,7 +138,7 @@ fastify.put('/pedidos/:id', async (request, reply) => {
   const { cliente, servicio, distrito, precio } = request.body;
   try {
     const result = await pool.query(
-      'UPDATE pedidos SET cliente = $1, servicio = $2, distrito = $3, precio = $4, fecha_actualizacion = NOW() WHERE id = $5 RETURNING *',
+      'UPDATE pedidos SET cliente = \$1, servicio = \$2, distrito = \$3, precio = \$4, fecha_actualizacion = NOW() WHERE id = \$5 RETURNING *',
       [cliente, servicio, distrito, precio, id]
     );
     return result.rows[0];
@@ -158,7 +154,7 @@ fastify.put('/pedidos/:id/estado', async (request, reply) => {
   const { estado } = request.body;
   try {
     await pool.query(
-      'UPDATE pedidos SET estado = $1, fecha_actualizacion = NOW() WHERE id = $2',
+      'UPDATE pedidos SET estado = \$1, fecha_actualizacion = NOW() WHERE id = \$2',
       [estado, id]
     );
     return { mensaje: 'Estado actualizado correctamente' };
